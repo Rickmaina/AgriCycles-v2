@@ -196,3 +196,48 @@ extension ContributionStatusLabel on ContributionStatus {
     }
   }
 }
+
+// ─── Disputes ─────────────────────────────────────────────────
+enum DisputeIssueType { quality, quantity, payment, pickup, other }
+
+extension DisputeIssueTypeLabel on DisputeIssueType {
+  String get label {
+    switch (this) {
+      case DisputeIssueType.quality:  return 'Quality';
+      case DisputeIssueType.quantity: return 'Quantity';
+      case DisputeIssueType.payment:  return 'Payment';
+      case DisputeIssueType.pickup:   return 'Pickup';
+      case DisputeIssueType.other:    return 'Other';
+    }
+  }
+}
+
+enum DisputeStatus { open, underReview, resolved }
+
+extension DisputeStatusLabel on DisputeStatus {
+  String get label {
+    switch (this) {
+      case DisputeStatus.open:        return 'Open';
+      case DisputeStatus.underReview: return 'Under review';
+      case DisputeStatus.resolved:    return 'Resolved';
+    }
+  }
+}
+
+enum DisputeResolution {
+  favourBuyer,
+  favourSeller,
+  split,
+  withdrawn,
+}
+
+extension DisputeResolutionLabel on DisputeResolution {
+  String get label {
+    switch (this) {
+      case DisputeResolution.favourBuyer:  return 'Refund buyer';
+      case DisputeResolution.favourSeller: return 'Release to seller';
+      case DisputeResolution.split:        return 'Split';
+      case DisputeResolution.withdrawn:    return 'Withdrawn';
+    }
+  }
+}

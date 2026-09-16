@@ -10,6 +10,9 @@ import '../admin/logistics_queue_screen.dart';
 import '../admin/verification_queue_screen.dart';
 import '../buy_requests/screens/post_need_screen.dart';
 import '../community/screens/create_pre_order_screen.dart';
+import '../disputes/screens/admin_disputes_screen.dart';
+import '../notifications/screens/notifications_screen.dart';
+import '../../data/services/notification_service.dart';
 import '../marketplace/create_listing_screen.dart';
 import '../orders/orders_list_screen.dart';
 import '../profile/profile_screen.dart';
@@ -45,9 +48,47 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       appBar: AppBar(
         title: Text('Hi, ${user.name.split(" ").first}'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
+          Consumer(
+            builder: (context, ref, _) {
+              final unread = ref.watch(myUnreadCountProvider(user.id));
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationsScreen(),
+                      ),
+                    ),
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
+                        constraints:
+                            const BoxConstraints(minWidth: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.danger,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          unread > 9 ? '9+' : '$unread',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -195,6 +236,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           case 2:
             return const LogisticsQueueScreen();
           case 3:
+            return const AdminDisputesScreen();
+          case 4:
             return const ProfileScreen();
         }
       case UserRole.vet:
@@ -225,6 +268,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           _NavItem(Icons.verified_user_outlined, Icons.verified_user, 'Verify'),
           _NavItem(Icons.local_shipping_outlined, Icons.local_shipping,
               'Logistics'),
+          _NavItem(Icons.gavel_outlined, Icons.gavel, 'Disputes'),
           _NavItem(Icons.person_outline, Icons.person, 'Profile'),
         ];
       case UserRole.vet:

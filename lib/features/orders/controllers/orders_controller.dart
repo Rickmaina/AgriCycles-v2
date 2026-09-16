@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/enums.dart';
 import '../../../data/models/order_model.dart';
 import '../../../data/services/order_service.dart';
+import '../../notifications/controllers/notification_controller.dart';
 import '../../../domain/order_state_machine.dart';
 
 /// Wraps [OrderService] and the state machine so screens never touch
@@ -21,6 +22,20 @@ class OrdersController {
     final next = OrderStateMachine.nextState(order.state);
     if (next == null) return;
     _svc.advanceTo(orderId, next);
+
+    final notify = _ref.read(notificationControllerProvider);
+    notify.notifyOrder(
+      recipientId: order.buyerId,
+      orderId: order.id,
+      resourceType: order.resourceType,
+      state: next,
+    );
+    notify.notifyOrder(
+      recipientId: order.sellerId,
+      orderId: order.id,
+      resourceType: order.resourceType,
+      state: next,
+    );
   }
 
   /// Moves an order into a branch state (declined / expired / disputed).

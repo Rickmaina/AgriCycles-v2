@@ -11,6 +11,7 @@ import '../../domain/transport_estimator.dart';
 import '../../shared/widgets/status_tracker.dart';
 import 'controllers/orders_controller.dart';
 import 'rate_order_screen.dart';
+import '../disputes/screens/raise_dispute_screen.dart';
 
 class OrderDetailScreen extends ConsumerWidget {
   final String orderId;
@@ -50,6 +51,22 @@ class OrderDetailScreen extends ConsumerWidget {
           ],
           const SizedBox(height: 24),
           _ActionButton(order: order, isBuyer: isBuyer),
+          if (_canRaiseDispute(order) && !order.state.isTerminal) ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => RaiseDisputeScreen(order: order),
+                ),
+              ),
+              icon: const Icon(Icons.gavel_outlined, size: 18),
+              label: const Text('Raise dispute'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.danger,
+                side: const BorderSide(color: AppColors.danger),
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           const Text(
             'Contact details are shared only after acceptance and only between the two parties.',
@@ -60,6 +77,12 @@ class OrderDetailScreen extends ConsumerWidget {
       ),
     );
   }
+
+  bool _canRaiseDispute(OrderModel order) =>
+      order.state == OrderState.accepted ||
+      order.state == OrderState.paymentSecured ||
+      order.state == OrderState.pickupScheduled ||
+      order.state == OrderState.qualityConfirmed;
 
   bool _showLogistics(OrderModel order) =>
       order.state == OrderState.paymentSecured ||
