@@ -5,7 +5,6 @@ import '../../core/constants/enums.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/extensions.dart';
 import '../../data/models/order_model.dart';
-import '../../data/services/auth_service.dart';
 import '../../domain/transport_estimator.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../orders/controllers/orders_controller.dart';

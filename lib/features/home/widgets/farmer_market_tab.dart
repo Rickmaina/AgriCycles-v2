@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/segmented_toggle.dart';
+import '../../buy_requests/screens/browse_needs_screen.dart';
 import '../../marketplace/browse_screen.dart';
 import '../../marketplace/incoming_offers_screen.dart';
 import '../../marketplace/my_listings_screen.dart';
 
-/// Farmer Market tab: Browse / Mine / Offers, driven by [SegmentedToggle].
 class FarmerMarketTab extends StatefulWidget {
   const FarmerMarketTab({super.key});
 
@@ -16,7 +16,7 @@ class FarmerMarketTab extends StatefulWidget {
 class _FarmerMarketTabState extends State<FarmerMarketTab> {
   int _tab = 0;
 
-  static const _tabs = ['Browse', 'Mine', 'Offers'];
+  static const _tabs = ['Browse', 'Needs', 'Mine', 'Offers'];
 
   @override
   Widget build(BuildContext context) {
@@ -28,12 +28,14 @@ class _FarmerMarketTabState extends State<FarmerMarketTab> {
             options: _tabs,
             selectedIndex: _tab,
             onChanged: (i) => setState(() => _tab = i),
+            expand: false,
           ),
         ),
         Expanded(
           child: switch (_tab) {
             0 => const BrowseScreen(),
-            1 => const MyListingsScreen(),
+            1 => const BrowseNeedsScreen(),
+            2 => const MyListingsScreen(),
             _ => const IncomingOffersScreen(),
           },
         ),

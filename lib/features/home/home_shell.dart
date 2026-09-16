@@ -8,18 +8,16 @@ import '../../core/theme/app_colors.dart';
 import '../../data/services/auth_service.dart';
 import '../admin/logistics_queue_screen.dart';
 import '../admin/verification_queue_screen.dart';
-import '../marketplace/browse_screen.dart';
+import '../buy_requests/screens/post_need_screen.dart';
+import '../community/screens/create_pre_order_screen.dart';
 import '../marketplace/create_listing_screen.dart';
 import '../orders/orders_list_screen.dart';
 import '../profile/profile_screen.dart';
 import 'farmer_dashboard.dart';
-import 'widgets/company_home.dart';
 import 'widgets/admin_home.dart';
+import 'widgets/company_home.dart';
 import 'widgets/farmer_market_tab.dart';
 
-/// The single app shell. Role-aware bottom nav (Section 4.1).
-/// Every role lands here after login/onboarding; only the tab bodies
-/// and nav items differ.
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
@@ -83,17 +81,84 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     );
   }
 
-  /// FAB only on the farmer's Market tab (they're the sellers).
   Widget? _fabFor(UserRole role, int index) {
     if (role != UserRole.farmer || index != 1) return null;
     return FloatingActionButton.extended(
-      onPressed: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const CreateListingScreen()),
-      ),
+      onPressed: () => _showMarketActions(context),
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
       icon: const Icon(Icons.add),
-      label: const Text('Sell'),
+      label: const Text('Post'),
+    );
+  }
+
+  void _showMarketActions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.add_box_outlined,
+                  color: AppColors.primary),
+              title: const Text('Sell a resource'),
+              subtitle: const Text('List crop waste, manure, feed'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreateListingScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.campaign_outlined,
+                  color: AppColors.primary),
+              title: const Text('Post a need'),
+              subtitle: const Text('Buy-first: state what you need'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const PostNeedScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups_outlined,
+                  color: AppColors.primary),
+              title: const Text('Start community order'),
+              subtitle: const Text('Aggregate across many farms'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreatePreOrderScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
     );
   }
 
@@ -115,7 +180,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           case 0:
             return const CompanyHome();
           case 1:
-            return const BrowseScreen();
+            return const FarmerMarketTab();
           case 2:
             return const OrdersListScreen();
           case 3:

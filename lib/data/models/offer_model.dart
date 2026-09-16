@@ -1,27 +1,27 @@
 import '../../core/constants/enums.dart';
 
-/// A buyer's bid against a listing. Carries the buyer's intended
-/// delivery point so the resulting order inherits it once accepted.
 class OfferModel {
   final String id;
   final String listingId;
+  final String sellerId;
+  final String sellerName;
   final String buyerId;
   final String buyerName;
   final double quantity;
   final double pricePerUnit;
   final String? message;
-
   final String deliveryCounty;
   final String deliverySubCounty;
   final String deliveryArea;
   final String? deliveryNotes;
-
   final OfferStatus status;
   final DateTime createdAt;
 
   const OfferModel({
     required this.id,
     required this.listingId,
+    required this.sellerId,
+    required this.sellerName,
     required this.buyerId,
     required this.buyerName,
     required this.quantity,
@@ -35,26 +35,21 @@ class OfferModel {
     required this.createdAt,
   });
 
-  OfferModel copyWith({
-    double? quantity,
-    double? pricePerUnit,
-    String? message,
-    OfferStatus? status,
-  }) {
-    return OfferModel(
-      id: id,
-      listingId: listingId,
-      buyerId: buyerId,
-      buyerName: buyerName,
-      quantity: quantity ?? this.quantity,
-      pricePerUnit: pricePerUnit ?? this.pricePerUnit,
-      message: message ?? this.message,
-      deliveryCounty: deliveryCounty,
-      deliverySubCounty: deliverySubCounty,
-      deliveryArea: deliveryArea,
-      deliveryNotes: deliveryNotes,
-      status: status ?? this.status,
-      createdAt: createdAt,
-    );
-  }
+  OfferModel copyWith({OfferStatus? status}) => OfferModel(
+        id: id,
+        listingId: listingId,
+        sellerId: sellerId,
+        sellerName: sellerName,
+        buyerId: buyerId,
+        buyerName: buyerName,
+        quantity: quantity,
+        pricePerUnit: pricePerUnit,
+        message: message,
+        deliveryCounty: deliveryCounty,
+        deliverySubCounty: deliverySubCounty,
+        deliveryArea: deliveryArea,
+        deliveryNotes: deliveryNotes,
+        status: status ?? this.status,
+        createdAt: createdAt,
+      );
 }

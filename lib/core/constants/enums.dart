@@ -1,6 +1,4 @@
-// ─────────────────────────────────────────────────────────────
-// Roles
-// ─────────────────────────────────────────────────────────────
+// ─── Roles ────────────────────────────────────────────────────
 enum UserRole { farmer, vet, company, admin }
 
 extension UserRoleLabel on UserRole {
@@ -14,9 +12,7 @@ extension UserRoleLabel on UserRole {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Onboarding
-// ─────────────────────────────────────────────────────────────
+// ─── Onboarding ───────────────────────────────────────────────
 enum FarmerType { plant, animal, both }
 
 extension FarmerTypeLabel on FarmerType {
@@ -29,9 +25,7 @@ extension FarmerTypeLabel on FarmerType {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Verification
-// ─────────────────────────────────────────────────────────────
+// ─── Verification ─────────────────────────────────────────────
 enum VerificationStatus { unverified, pending, approved, rejected, suspended }
 
 enum VerificationType { vet, company, vehicle }
@@ -46,9 +40,7 @@ extension VerificationTypeLabel on VerificationType {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Vet visits (Section 6.1) - lighter, no payment/quality stages
-// ─────────────────────────────────────────────────────────────
+// ─── Vet visits (v3) ──────────────────────────────────────────
 enum VetVisitState { requested, confirmed, declined, completed, rated }
 
 extension VetVisitStateLabel on VetVisitState {
@@ -63,9 +55,7 @@ extension VetVisitStateLabel on VetVisitState {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Marketplace order (Section 6.2) - full commerce lifecycle
-// ─────────────────────────────────────────────────────────────
+// ─── Marketplace order ────────────────────────────────────────
 enum OrderState {
   requested,
   negotiation,
@@ -111,9 +101,7 @@ extension OrderStateLabel on OrderState {
       this == OrderState.disputed;
 }
 
-// ─────────────────────────────────────────────────────────────
-// Logistics (Section 16.3) - Admin-mediated pickup sub-state
-// ─────────────────────────────────────────────────────────────
+// ─── Logistics ────────────────────────────────────────────────
 enum LogisticsState {
   awaitingAdminAssignment,
   pickupAssigned,
@@ -136,9 +124,7 @@ extension LogisticsStateLabel on LogisticsState {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Offers
-// ─────────────────────────────────────────────────────────────
+// ─── Offers ───────────────────────────────────────────────────
 enum OfferStatus { pending, countered, accepted, declined, expired }
 
 extension OfferStatusLabel on OfferStatus {
@@ -153,7 +139,60 @@ extension OfferStatusLabel on OfferStatus {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Listings
-// ─────────────────────────────────────────────────────────────
+// ─── Listings ─────────────────────────────────────────────────
 enum ListingStatus { active, paused, sold, expired }
+
+// ─── Buy requests ─────────────────────────────────────────────
+enum BuyRequestStatus { open, matched, closed, expired }
+
+extension BuyRequestStatusLabel on BuyRequestStatus {
+  String get label {
+    switch (this) {
+      case BuyRequestStatus.open:    return 'Open';
+      case BuyRequestStatus.matched: return 'Matched';
+      case BuyRequestStatus.closed:  return 'Closed';
+      case BuyRequestStatus.expired: return 'Expired';
+    }
+  }
+}
+
+enum BuyRequestOfferStatus { pending, accepted, declined, withdrawn }
+
+extension BuyRequestOfferStatusLabel on BuyRequestOfferStatus {
+  String get label {
+    switch (this) {
+      case BuyRequestOfferStatus.pending:   return 'Pending';
+      case BuyRequestOfferStatus.accepted:  return 'Accepted';
+      case BuyRequestOfferStatus.declined:  return 'Declined';
+      case BuyRequestOfferStatus.withdrawn: return 'Withdrawn';
+    }
+  }
+}
+
+// ─── Community pre-orders ─────────────────────────────────────
+enum PreOrderStatus { open, locked, completed, cancelled, expired }
+
+extension PreOrderStatusLabel on PreOrderStatus {
+  String get label {
+    switch (this) {
+      case PreOrderStatus.open:      return 'Open';
+      case PreOrderStatus.locked:    return 'Locked';
+      case PreOrderStatus.completed: return 'Completed';
+      case PreOrderStatus.cancelled: return 'Cancelled';
+      case PreOrderStatus.expired:   return 'Expired';
+    }
+  }
+}
+
+enum ContributionStatus { committed, confirmed, rejected, withdrawn }
+
+extension ContributionStatusLabel on ContributionStatus {
+  String get label {
+    switch (this) {
+      case ContributionStatus.committed: return 'Committed';
+      case ContributionStatus.confirmed: return 'Confirmed';
+      case ContributionStatus.rejected:  return 'Rejected';
+      case ContributionStatus.withdrawn: return 'Withdrawn';
+    }
+  }
+}

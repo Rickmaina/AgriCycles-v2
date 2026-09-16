@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/enums.dart';
 import '../../core/constants/kenya_locations.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/utils/extensions.dart';
 import '../../data/models/verification_request_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../domain/validators.dart';

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/widgets/base_card.dart';
 import 'info_card.dart';
 
 class CompanyHome extends StatelessWidget {

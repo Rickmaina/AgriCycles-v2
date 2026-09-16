@@ -184,9 +184,9 @@ class _TradeActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseCard(
+    return const BaseCard(
       child: Column(
-        children: const [
+        children: [
           _ActionRow(
             icon: Icons.add_box_outlined,
             title: 'Sell a resource',
@@ -215,9 +215,9 @@ class _CommunityActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseCard(
+    return const BaseCard(
       child: Column(
-        children: const [
+        children: [
           _ActionRow(
             icon: Icons.groups_outlined,
             title: 'Join a community order',
