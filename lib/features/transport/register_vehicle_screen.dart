@@ -18,8 +18,7 @@ class RegisterVehicleScreen extends ConsumerStatefulWidget {
       _RegisterVehicleScreenState();
 }
 
-class _RegisterVehicleScreenState
-    extends ConsumerState<RegisterVehicleScreen> {
+class _RegisterVehicleScreenState extends ConsumerState<RegisterVehicleScreen> {
   final _formKey = GlobalKey<FormState>();
   final _owner = TextEditingController();
   final _plate = TextEditingController();
@@ -81,8 +80,7 @@ class _RegisterVehicleScreenState
               const SizedBox(height: 16),
               const Text(
                 'Awaiting Admin review',
-                style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -128,8 +126,7 @@ class _RegisterVehicleScreenState
                   decoration: const InputDecoration(
                     labelText: 'Registered owner name',
                   ),
-                  validator: (v) =>
-                      Validators.requiredText(v, label: 'Owner'),
+                  validator: (v) => Validators.requiredText(v, label: 'Owner'),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -169,11 +166,10 @@ class _RegisterVehicleScreenState
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _county,
-                  decoration: const InputDecoration(
-                      labelText: 'Operating county'),
+                  decoration:
+                      const InputDecoration(labelText: 'Operating county'),
                   items: KenyaLocations.counties
-                      .map((c) =>
-                          DropdownMenuItem(value: c, child: Text(c)))
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
                   onChanged: (v) => setState(() => _county = v),
                   validator: Validators.county,
@@ -207,14 +203,12 @@ class _WarningNote extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          Icon(Icons.warning_amber,
-              size: 18, color: AppColors.warning),
+          Icon(Icons.warning_amber, size: 18, color: AppColors.warning),
           SizedBox(width: 8),
           Expanded(
             child: Text(
               'You will need to show the e-Logbook QR code or provide a Copy of Records when Admin requests it.',
-              style: TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],

@@ -121,8 +121,7 @@ class ListingCard extends StatelessWidget {
 
   Widget _photo() {
     return ClipRRect(
-      borderRadius:
-          const BorderRadius.vertical(top: Radius.circular(16)),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       child: Container(
         height: 118,
         color: AppColors.surfaceAlt,

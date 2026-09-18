@@ -39,8 +39,8 @@ class _LogisticsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final waiting = order.logisticsState ==
-        LogisticsState.awaitingAdminAssignment;
+    final waiting =
+        order.logisticsState == LogisticsState.awaitingAdminAssignment;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -143,15 +143,13 @@ class _LogisticsCard extends ConsumerWidget {
           width: 72,
           child: Text(
             label,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -177,8 +175,7 @@ class _NtsaNote extends StatelessWidget {
           Expanded(
             child: Text(
               'Assign only NTSA-verified vehicles. Check the Verify tab first.',
-              style: TextStyle(
-                  fontSize: 11, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -194,8 +191,10 @@ class _LogiChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (state) {
-      LogisticsState.awaitingAdminAssignment =>
-        ('Awaiting assignment', AppColors.warning),
+      LogisticsState.awaitingAdminAssignment => (
+          'Awaiting assignment',
+          AppColors.warning
+        ),
       LogisticsState.pickupAssigned => ('Assigned', AppColors.info),
       LogisticsState.inTransit => ('In transit', AppColors.info),
       LogisticsState.delivered => ('Delivered', AppColors.success),

@@ -54,8 +54,7 @@ class CounterOfferSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<CounterOfferSheet> createState() =>
-      _CounterOfferSheetState();
+  ConsumerState<CounterOfferSheet> createState() => _CounterOfferSheetState();
 }
 
 class _CounterOfferSheetState extends ConsumerState<CounterOfferSheet> {
@@ -67,10 +66,9 @@ class _CounterOfferSheetState extends ConsumerState<CounterOfferSheet> {
   @override
   void initState() {
     super.initState();
-    _quantity =
-        TextEditingController(text: _formatQty(widget.defaultQuantity));
-    _price = TextEditingController(
-        text: widget.defaultPrice.toStringAsFixed(0));
+    _quantity = TextEditingController(text: _formatQty(widget.defaultQuantity));
+    _price =
+        TextEditingController(text: widget.defaultPrice.toStringAsFixed(0));
   }
 
   String _formatQty(double q) =>
@@ -92,9 +90,7 @@ class _CounterOfferSheetState extends ConsumerState<CounterOfferSheet> {
           byName: widget.byName,
           pricePerUnit: double.parse(_price.text.trim()),
           quantity: double.parse(_quantity.text.trim()),
-          message: _message.text.trim().isEmpty
-              ? null
-              : _message.text.trim(),
+          message: _message.text.trim().isEmpty ? null : _message.text.trim(),
         );
     Navigator.pop(context, true);
   }
@@ -123,14 +119,12 @@ class _CounterOfferSheetState extends ConsumerState<CounterOfferSheet> {
               const SizedBox(height: 16),
               const Text(
                 'Counter-offer',
-                style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 4),
               const Text(
                 'Propose different terms. The other party gets one turn back.',
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -138,11 +132,9 @@ class _CounterOfferSheetState extends ConsumerState<CounterOfferSheet> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                      RegExp(r'^\d*\.?\d{0,2}')),
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                 ],
-                decoration:
-                    const InputDecoration(labelText: 'Quantity'),
+                decoration: const InputDecoration(labelText: 'Quantity'),
                 validator: (v) =>
                     Validators.positiveNumber(v, label: 'Quantity'),
               ),
@@ -152,13 +144,11 @@ class _CounterOfferSheetState extends ConsumerState<CounterOfferSheet> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                      RegExp(r'^\d*\.?\d{0,2}')),
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                 ],
                 decoration: const InputDecoration(
                     labelText: 'Your price per unit (KES)'),
-                validator: (v) =>
-                    Validators.positiveNumber(v, label: 'Price'),
+                validator: (v) => Validators.positiveNumber(v, label: 'Price'),
               ),
               const SizedBox(height: 12),
               TextField(

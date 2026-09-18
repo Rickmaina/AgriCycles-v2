@@ -27,8 +27,7 @@ class BuyRequestState {
 }
 
 class BuyRequestService extends StateNotifier<BuyRequestState> {
-  BuyRequestService()
-      : super(const BuyRequestState(requests: [], offers: []));
+  BuyRequestService() : super(const BuyRequestState(requests: [], offers: []));
 
   /// True when the request should be handled as a community pre-order
   /// rather than a single-seller broadcast.
@@ -49,9 +48,8 @@ class BuyRequestService extends StateNotifier<BuyRequestState> {
     );
   }
 
-  List<BuyRequestModel> openRequests() => state.requests
-      .where((r) => r.status == BuyRequestStatus.open)
-      .toList();
+  List<BuyRequestModel> openRequests() =>
+      state.requests.where((r) => r.status == BuyRequestStatus.open).toList();
 
   List<BuyRequestModel> byBuyer(String buyerId) =>
       state.requests.where((r) => r.buyerId == buyerId).toList();

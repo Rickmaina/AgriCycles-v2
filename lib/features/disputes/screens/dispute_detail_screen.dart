@@ -47,8 +47,7 @@ class DisputeDetailScreen extends ConsumerWidget {
             const Text(
               'Admin reviews both sides and decides the outcome. You will be notified when resolved.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12, color: AppColors.textMuted),
+              style: TextStyle(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ],
@@ -99,9 +98,7 @@ class _StatusHeader extends StatelessWidget {
                 Text(
                   dispute.status.label,
                   style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: color),
+                      fontSize: 12, fontWeight: FontWeight.w600, color: color),
                 ),
               ],
             ),
@@ -130,14 +127,13 @@ class _DetailsCard extends StatelessWidget {
         children: [
           _row('Order', dispute.orderResourceType),
           const SizedBox(height: 6),
-          _row('Raised by',
-              '${dispute.raisedByName} (${dispute.raisedByRole})'),
+          _row(
+              'Raised by', '${dispute.raisedByName} (${dispute.raisedByRole})'),
           const SizedBox(height: 6),
           _row('Raised', dispute.createdAt.relative),
           if (dispute.affectedQuantity != null) ...[
             const SizedBox(height: 6),
-            _row('Affected qty',
-                dispute.affectedQuantity!.toStringAsFixed(1)),
+            _row('Affected qty', dispute.affectedQuantity!.toStringAsFixed(1)),
           ],
           if (dispute.affectedAmount != null) ...[
             const SizedBox(height: 6),
@@ -154,8 +150,7 @@ class _DetailsCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             dispute.description,
-            style: const TextStyle(
-                fontSize: 13, height: 1.5),
+            style: const TextStyle(fontSize: 13, height: 1.5),
           ),
         ],
       ),
@@ -169,15 +164,13 @@ class _DetailsCard extends StatelessWidget {
           width: 100,
           child: Text(
             label,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -196,21 +189,18 @@ class _ResolutionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.success.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppColors.success.withValues(alpha: 0.25)),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
             children: [
-              Icon(Icons.check_circle,
-                  size: 18, color: AppColors.success),
+              Icon(Icons.check_circle, size: 18, color: AppColors.success),
               SizedBox(width: 8),
               Text(
                 'Resolution',
-                style: TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -226,15 +216,13 @@ class _ResolutionCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               dispute.resolutionNotes!,
-              style: const TextStyle(
-                  fontSize: 13, height: 1.5),
+              style: const TextStyle(fontSize: 13, height: 1.5),
             ),
           ],
           const SizedBox(height: 8),
           Text(
             'Resolved by ${dispute.resolvedBy ?? "Admin"} • ${dispute.resolvedAt?.relative ?? ""}',
-            style: const TextStyle(
-                fontSize: 11, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
           ),
         ],
       ),
@@ -283,9 +271,7 @@ class _AdminActions extends ConsumerWidget {
           disputeId: dispute.id,
           resolution: resolution,
           adminName: admin?.name ?? 'Admin',
-          notes: notesCtrl.text.trim().isEmpty
-              ? null
-              : notesCtrl.text.trim(),
+          notes: notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
         );
     context.showSnack('Dispute resolved');
   }
@@ -299,9 +285,8 @@ class _AdminActions extends ConsumerWidget {
       children: [
         if (!underReview)
           OutlinedButton.icon(
-            onPressed: () => ref
-                .read(disputeControllerProvider)
-                .markUnderReview(dispute.id),
+            onPressed: () =>
+                ref.read(disputeControllerProvider).markUnderReview(dispute.id),
             icon: const Icon(Icons.visibility_outlined),
             label: const Text('Mark under review'),
           ),

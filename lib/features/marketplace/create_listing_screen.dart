@@ -141,8 +141,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   labelText: 'Resource name',
                   hintText: 'e.g. Maize stalks, Cow manure',
                 ),
-                validator: (v) =>
-                    Validators.requiredText(v, label: 'Resource'),
+                validator: (v) => Validators.requiredText(v, label: 'Resource'),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
@@ -155,7 +154,6 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 onChanged: (v) => setState(() => _category = v!),
               ),
               const SizedBox(height: 24),
-
               const _SectionLabel('Quantity & price'),
               const SizedBox(height: 10),
               Row(
@@ -165,14 +163,13 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                     flex: 3,
                     child: TextFormField(
                       controller: _quantity,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d{0,2}')),
                       ],
-                      decoration:
-                          const InputDecoration(labelText: 'Quantity'),
+                      decoration: const InputDecoration(labelText: 'Quantity'),
                       validator: (v) => Validators.positiveNumber(v,
                           label: 'Quantity', max: 100000),
                     ),
@@ -184,8 +181,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                       initialValue: _unit,
                       decoration: const InputDecoration(labelText: 'Unit'),
                       items: _units
-                          .map((u) =>
-                              DropdownMenuItem(value: u, child: Text(u)))
+                          .map(
+                              (u) => DropdownMenuItem(value: u, child: Text(u)))
                           .toList(),
                       onChanged: (v) => setState(() => _unit = v!),
                     ),
@@ -198,15 +195,13 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                      RegExp(r'^\d*\.?\d{0,2}')),
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                 ],
                 decoration: InputDecoration(
                   labelText: 'Price per $_unit (KES)',
                   prefixText: 'KES ',
                 ),
-                validator: (v) =>
-                    Validators.positiveNumber(v, label: 'Price'),
+                validator: (v) => Validators.positiveNumber(v, label: 'Price'),
               ),
               if (_totalValue > 0) ...[
                 const SizedBox(height: 12),
@@ -224,12 +219,10 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
               const _SectionLabel('Photos'),
               const SizedBox(height: 10),
               const _PhotoPlaceholder(),
               const SizedBox(height: 24),
-
               const _SectionLabel('Pickup location'),
               const SizedBox(height: 6),
               const Text(
@@ -245,8 +238,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 initialValue: _county,
                 decoration: const InputDecoration(labelText: 'County'),
                 items: KenyaLocations.counties
-                    .map((c) =>
-                        DropdownMenuItem(value: c, child: Text(c)))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (v) => setState(() => _county = v),
                 validator: Validators.county,
@@ -255,8 +247,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               TextFormField(
                 controller: _subCounty,
                 textCapitalization: TextCapitalization.words,
-                decoration:
-                    const InputDecoration(labelText: 'Sub-county'),
+                decoration: const InputDecoration(labelText: 'Sub-county'),
                 validator: (v) =>
                     Validators.requiredText(v, label: 'Sub-county'),
               ),
@@ -264,10 +255,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               TextFormField(
                 controller: _area,
                 textCapitalization: TextCapitalization.words,
-                decoration:
-                    const InputDecoration(labelText: 'Area / Village'),
-                validator: (v) =>
-                    Validators.requiredText(v, label: 'Area'),
+                decoration: const InputDecoration(labelText: 'Area / Village'),
+                validator: (v) => Validators.requiredText(v, label: 'Area'),
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
@@ -319,8 +308,7 @@ class _TotalPreview extends StatelessWidget {
           const SizedBox(width: 8),
           const Text(
             'Total listing value',
-            style: TextStyle(
-                fontSize: 13, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const Spacer(),
           Text(

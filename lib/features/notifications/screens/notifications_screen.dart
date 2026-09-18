@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/enums.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/notification_model.dart';
@@ -26,9 +25,8 @@ class NotificationsScreen extends ConsumerWidget {
         actions: [
           if (list.any((n) => !n.read))
             TextButton(
-              onPressed: () => ref
-                  .read(notificationControllerProvider)
-                  .markAllRead(user.id),
+              onPressed: () =>
+                  ref.read(notificationControllerProvider).markAllRead(user.id),
               child: const Text('Mark all read'),
             ),
         ],
@@ -70,7 +68,9 @@ class _NotificationCard extends StatelessWidget {
     final (icon, color) = _style(notification.type);
 
     return Material(
-      color: unread ? AppColors.primary.withValues(alpha: 0.04) : AppColors.surface,
+      color: unread
+          ? AppColors.primary.withValues(alpha: 0.04)
+          : AppColors.surface,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -108,9 +108,8 @@ class _NotificationCard extends StatelessWidget {
                             notification.title,
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: unread
-                                  ? FontWeight.w700
-                                  : FontWeight.w600,
+                              fontWeight:
+                                  unread ? FontWeight.w700 : FontWeight.w600,
                               color: AppColors.textPrimary,
                             ),
                           ),

@@ -10,7 +10,7 @@ class BuyRequestOfferModel {
   final String sellerName;
 
   final double pricePerUnit;
-  final double quantity;       // how much of the request this seller can supply
+  final double quantity; // how much of the request this seller can supply
   final String? message;
 
   final String pickupCounty;

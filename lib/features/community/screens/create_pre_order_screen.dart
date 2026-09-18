@@ -19,8 +19,7 @@ class CreatePreOrderScreen extends ConsumerStatefulWidget {
       _CreatePreOrderScreenState();
 }
 
-class _CreatePreOrderScreenState
-    extends ConsumerState<CreatePreOrderScreen> {
+class _CreatePreOrderScreenState extends ConsumerState<CreatePreOrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _resourceType = TextEditingController();
   final _target = TextEditingController();
@@ -74,9 +73,7 @@ class _CreatePreOrderScreenState
           deliveryCounty: _county!,
           deliverySubCounty: _subCounty.text.trim(),
           deliveryArea: _area.text.trim(),
-          deliveryNotes: _notes.text.trim().isEmpty
-              ? null
-              : _notes.text.trim(),
+          deliveryNotes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
           deadline: DateTime.now().add(Duration(days: _deadlineDays)),
         );
 
@@ -118,7 +115,6 @@ class _CreatePreOrderScreenState
                 ),
               ),
               const SizedBox(height: 20),
-
               const _SectionLabel('What do you need aggregated?'),
               const SizedBox(height: 10),
               TextFormField(
@@ -128,21 +124,18 @@ class _CreatePreOrderScreenState
                   labelText: 'Resource name',
                   hintText: 'e.g. Maize stalks',
                 ),
-                validator: (v) =>
-                    Validators.requiredText(v, label: 'Resource'),
+                validator: (v) => Validators.requiredText(v, label: 'Resource'),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: _category,
                 decoration: const InputDecoration(labelText: 'Category'),
                 items: _categories
-                    .map((c) =>
-                        DropdownMenuItem(value: c, child: Text(c)))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (v) => setState(() => _category = v!),
               ),
               const SizedBox(height: 24),
-
               const _SectionLabel('Target & price'),
               const SizedBox(height: 10),
               Row(
@@ -153,14 +146,13 @@ class _CreatePreOrderScreenState
                     child: TextFormField(
                       controller: _target,
                       keyboardType:
-                          const TextInputType.numberWithOptions(
-                              decimal: true),
+                          const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d{0,2}')),
                       ],
-                      decoration: const InputDecoration(
-                          labelText: 'Target quantity'),
+                      decoration:
+                          const InputDecoration(labelText: 'Target quantity'),
                       validator: (v) => Validators.positiveNumber(v,
                           label: 'Target', max: 100000),
                     ),
@@ -170,11 +162,10 @@ class _CreatePreOrderScreenState
                     flex: 2,
                     child: DropdownButtonFormField<String>(
                       initialValue: _unit,
-                      decoration:
-                          const InputDecoration(labelText: 'Unit'),
+                      decoration: const InputDecoration(labelText: 'Unit'),
                       items: _units
-                          .map((u) =>
-                              DropdownMenuItem(value: u, child: Text(u)))
+                          .map(
+                              (u) => DropdownMenuItem(value: u, child: Text(u)))
                           .toList(),
                       onChanged: (v) => setState(() => _unit = v!),
                     ),
@@ -187,15 +178,13 @@ class _CreatePreOrderScreenState
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                      RegExp(r'^\d*\.?\d{0,2}')),
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                 ],
                 decoration: InputDecoration(
                   labelText: 'Price per $_unit (KES)',
                   prefixText: 'KES ',
                 ),
-                validator: (v) =>
-                    Validators.positiveNumber(v, label: 'Price'),
+                validator: (v) => Validators.positiveNumber(v, label: 'Price'),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -208,7 +197,6 @@ class _CreatePreOrderScreenState
                 ),
               ),
               const SizedBox(height: 24),
-
               const _SectionLabel('Deadline'),
               const SizedBox(height: 10),
               Wrap(
@@ -218,12 +206,9 @@ class _CreatePreOrderScreenState
                   return ChoiceChip(
                     label: Text('$d days'),
                     selected: active,
-                    onSelected: (_) =>
-                        setState(() => _deadlineDays = d),
+                    onSelected: (_) => setState(() => _deadlineDays = d),
                     labelStyle: TextStyle(
-                      color: active
-                          ? Colors.white
-                          : AppColors.textPrimary,
+                      color: active ? Colors.white : AppColors.textPrimary,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
@@ -234,21 +219,18 @@ class _CreatePreOrderScreenState
                 }).toList(),
               ),
               const SizedBox(height: 24),
-
               const _SectionLabel('Delivery point'),
               const SizedBox(height: 6),
               const Text(
                 'Broad area is shown to contributors.',
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: _county,
                 decoration: const InputDecoration(labelText: 'County'),
                 items: KenyaLocations.counties
-                    .map((c) =>
-                        DropdownMenuItem(value: c, child: Text(c)))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (v) => setState(() => _county = v),
                 validator: Validators.county,
@@ -257,8 +239,7 @@ class _CreatePreOrderScreenState
               TextFormField(
                 controller: _subCounty,
                 textCapitalization: TextCapitalization.words,
-                decoration:
-                    const InputDecoration(labelText: 'Sub-county'),
+                decoration: const InputDecoration(labelText: 'Sub-county'),
                 validator: (v) =>
                     Validators.requiredText(v, label: 'Sub-county'),
               ),
@@ -266,10 +247,8 @@ class _CreatePreOrderScreenState
               TextFormField(
                 controller: _area,
                 textCapitalization: TextCapitalization.words,
-                decoration:
-                    const InputDecoration(labelText: 'Area / Village'),
-                validator: (v) =>
-                    Validators.requiredText(v, label: 'Area'),
+                decoration: const InputDecoration(labelText: 'Area / Village'),
+                validator: (v) => Validators.requiredText(v, label: 'Area'),
               ),
               const SizedBox(height: 12),
               TextFormField(

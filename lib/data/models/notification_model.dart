@@ -1,5 +1,3 @@
-import '../../core/constants/enums.dart';
-
 /// In-app notification. Optionally carries a deep-link reference so
 /// tapping a notification can route the user to the relevant screen.
 class NotificationModel {
@@ -55,15 +53,29 @@ enum NotificationType {
 extension NotificationTypeLabel on NotificationType {
   String get label {
     switch (this) {
-      case NotificationType.order:        return 'Order';
-      case NotificationType.offer:        return 'Offer';
-      case NotificationType.counterOffer: return 'Counter-offer';
-      case NotificationType.community:    return 'Community';
-      case NotificationType.dispute:      return 'Dispute';
-      case NotificationType.verification: return 'Verification';
-      case NotificationType.system:       return 'System';
+      case NotificationType.order:
+        return 'Order';
+      case NotificationType.offer:
+        return 'Offer';
+      case NotificationType.counterOffer:
+        return 'Counter-offer';
+      case NotificationType.community:
+        return 'Community';
+      case NotificationType.dispute:
+        return 'Dispute';
+      case NotificationType.verification:
+        return 'Verification';
+      case NotificationType.system:
+        return 'System';
     }
   }
 }
 
-enum NotificationTarget { order, listing, offer, preOrder, dispute, verification }
+enum NotificationTarget {
+  order,
+  listing,
+  offer,
+  preOrder,
+  dispute,
+  verification
+}

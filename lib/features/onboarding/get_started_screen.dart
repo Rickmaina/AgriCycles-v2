@@ -11,17 +11,14 @@ class GetStartedScreen extends ConsumerStatefulWidget {
   const GetStartedScreen({super.key});
 
   @override
-  ConsumerState<GetStartedScreen> createState() =>
-      _GetStartedScreenState();
+  ConsumerState<GetStartedScreen> createState() => _GetStartedScreenState();
 }
 
 class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
   FarmerType? _selected;
 
   void _finish(FarmerType type) {
-    ref
-        .read(authControllerProvider)
-        .completeOnboarding(farmerType: type);
+    ref.read(authControllerProvider).completeOnboarding(farmerType: type);
     context.go(AppRoutes.home);
   }
 
@@ -37,8 +34,7 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
             children: [
               const Text(
                 'What kind of farmer are you?',
-                style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -51,8 +47,7 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
                 title: 'Plant / cash-crop farmer',
                 subtitle: 'Maize, sugarcane, coffee, vegetables',
                 selected: _selected == FarmerType.plant,
-                onTap: () =>
-                    setState(() => _selected = FarmerType.plant),
+                onTap: () => setState(() => _selected = FarmerType.plant),
               ),
               const SizedBox(height: 12),
               _TypeCard(
@@ -60,8 +55,7 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
                 title: 'Animal farmer',
                 subtitle: 'Cows, goats, sheep, chicken',
                 selected: _selected == FarmerType.animal,
-                onTap: () =>
-                    setState(() => _selected = FarmerType.animal),
+                onTap: () => setState(() => _selected = FarmerType.animal),
               ),
               const SizedBox(height: 12),
               _TypeCard(
@@ -73,9 +67,7 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
               ),
               const SizedBox(height: 28),
               ElevatedButton(
-                onPressed: _selected == null
-                    ? null
-                    : () => _finish(_selected!),
+                onPressed: _selected == null ? null : () => _finish(_selected!),
                 child: const Text('Start trading'),
               ),
               const SizedBox(height: 8),
@@ -87,8 +79,7 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
               const Text(
                 'You can change this later from your profile.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
             ],
           ),
@@ -134,9 +125,7 @@ class _TypeCard extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: selected
-                  ? AppColors.primary
-                  : AppColors.textSecondary,
+              color: selected ? AppColors.primary : AppColors.textSecondary,
               size: 32,
             ),
             const SizedBox(width: 16),
@@ -146,19 +135,16 @@ class _TypeCard extends StatelessWidget {
                 children: [
                   Text(title,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16)),
+                          fontWeight: FontWeight.w700, fontSize: 16)),
                   const SizedBox(height: 4),
                   Text(subtitle,
                       style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13)),
+                          color: AppColors.textSecondary, fontSize: 13)),
                 ],
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle,
-                  color: AppColors.primary),
+              const Icon(Icons.check_circle, color: AppColors.primary),
           ],
         ),
       ),

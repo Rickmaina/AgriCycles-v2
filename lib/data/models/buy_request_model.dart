@@ -45,8 +45,7 @@ class BuyRequestModel {
 
   double get totalBudget => quantity * offeredPricePerUnit;
 
-  String get deliveryBroadLocation =>
-      '$deliveryArea, $deliverySubCounty';
+  String get deliveryBroadLocation => '$deliveryArea, $deliverySubCounty';
 
   BuyRequestModel copyWith({BuyRequestStatus? status}) => BuyRequestModel(
         id: id,

@@ -8,8 +8,8 @@ class VerificationRequestModel {
   final String applicantName;
   final VerificationType type;
   final String documentRef;
-  final String? plateNumber;    // vehicles only
-  final String? extraInfo;      // vehicles: make/model/capacity
+  final String? plateNumber; // vehicles only
+  final String? extraInfo; // vehicles: make/model/capacity
   final String county;
   final VerificationStatus status;
   final DateTime submittedAt;

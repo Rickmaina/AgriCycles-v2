@@ -33,8 +33,7 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
   @override
   void initState() {
     super.initState();
-    _quantity =
-        TextEditingController(text: widget.listing.quantity.toString());
+    _quantity = TextEditingController(text: widget.listing.quantity.toString());
     _price = TextEditingController(
         text: widget.listing.pricePerUnit.toStringAsFixed(0));
     _deliveryCounty = widget.listing.county;
@@ -75,9 +74,7 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
           deliveryNotes: _deliveryNotes.text.trim().isEmpty
               ? null
               : _deliveryNotes.text.trim(),
-          message: _message.text.trim().isEmpty
-              ? null
-              : _message.text.trim(),
+          message: _message.text.trim().isEmpty ? null : _message.text.trim(),
         );
 
     context.showSnack('Offer sent to seller');
@@ -145,17 +142,14 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                 const Text(
                   'Where do you want the goods delivered? The seller and Admin logistics see this once you make the offer.',
                   style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textMuted,
-                      height: 1.4),
+                      fontSize: 12, color: AppColors.textMuted, height: 1.4),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _deliveryCounty,
                   decoration: const InputDecoration(labelText: 'County'),
                   items: KenyaLocations.counties
-                      .map((c) =>
-                          DropdownMenuItem(value: c, child: Text(c)))
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
                   onChanged: (v) => setState(() => _deliveryCounty = v),
                   validator: Validators.county,
@@ -164,8 +158,7 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                 TextFormField(
                   controller: _deliverySubCounty,
                   textCapitalization: TextCapitalization.words,
-                  decoration:
-                      const InputDecoration(labelText: 'Sub-county'),
+                  decoration: const InputDecoration(labelText: 'Sub-county'),
                   validator: (v) =>
                       Validators.requiredText(v, label: 'Sub-county'),
                 ),
@@ -175,8 +168,7 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                   textCapitalization: TextCapitalization.words,
                   decoration:
                       const InputDecoration(labelText: 'Area / Village'),
-                  validator: (v) =>
-                      Validators.requiredText(v, label: 'Area'),
+                  validator: (v) => Validators.requiredText(v, label: 'Area'),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -225,14 +217,13 @@ class _ListingSummary extends StatelessWidget {
         children: [
           Text(
             listing.resourceType,
-            style: const TextStyle(
-                fontWeight: FontWeight.w700, fontSize: 15),
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
           ),
           const SizedBox(height: 4),
           Text(
             '${listing.sellerName} • ${listing.broadLocation}',
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 6),
           Text(
@@ -262,14 +253,13 @@ class _DistanceHint extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.route_outlined,
-              size: 18, color: AppColors.info),
+          const Icon(Icons.route_outlined, size: 18, color: AppColors.info),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Pickup to delivery: ≈ ${km.toStringAsFixed(0)} km straight-line',
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -296,8 +286,7 @@ class _AdminMediatedNote extends StatelessWidget {
           Expanded(
             child: Text(
               'Final transport is arranged by Admin once the seller accepts.',
-              style: TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],

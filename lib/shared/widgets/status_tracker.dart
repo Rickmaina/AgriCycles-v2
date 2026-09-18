@@ -38,8 +38,7 @@ class StatusTracker extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline,
-              color: AppColors.danger, size: 18),
+          const Icon(Icons.error_outline, color: AppColors.danger, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -89,8 +88,7 @@ class StatusTracker extends StatelessWidget {
                     steps[i],
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight:
-                          current ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: current ? FontWeight.w700 : FontWeight.w500,
                       color: done
                           ? AppColors.textPrimary
                           : current

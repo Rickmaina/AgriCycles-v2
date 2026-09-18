@@ -81,9 +81,7 @@ class MarketplaceController {
   String nextActorId(OfferModel offer) {
     final latest = _svc.latestCounter(offer.id);
     if (latest == null) return offer.sellerId;
-    return latest.byUserId == offer.buyerId
-        ? offer.sellerId
-        : offer.buyerId;
+    return latest.byUserId == offer.buyerId ? offer.sellerId : offer.buyerId;
   }
 
   bool canActorCounter({
@@ -141,9 +139,7 @@ final incomingOffersProvider =
       .where((l) => l.sellerId == sellerId)
       .map((l) => l.id)
       .toSet();
-  return state.offers
-      .where((o) => myListingIds.contains(o.listingId))
-      .toList();
+  return state.offers.where((o) => myListingIds.contains(o.listingId)).toList();
 });
 
 final counterOffersForProvider =

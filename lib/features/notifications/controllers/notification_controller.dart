@@ -8,8 +8,7 @@ class NotificationController {
   NotificationController(this._ref);
   final Ref _ref;
 
-  NotificationService get _svc =>
-      _ref.read(notificationProvider.notifier);
+  NotificationService get _svc => _ref.read(notificationProvider.notifier);
 
   void notifyOrder({
     required String recipientId,

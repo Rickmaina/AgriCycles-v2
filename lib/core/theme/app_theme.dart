@@ -20,7 +20,6 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
       fontFamily: 'Roboto',
-
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -32,7 +31,6 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
@@ -42,7 +40,6 @@ class AppTheme {
           side: const BorderSide(color: AppColors.border),
         ),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -54,7 +51,6 @@ class AppTheme {
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
-
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
@@ -65,7 +61,6 @@ class AppTheme {
           ),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceAlt,
@@ -84,7 +79,6 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
-
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceAlt,
         labelStyle: const TextStyle(color: AppColors.textPrimary),

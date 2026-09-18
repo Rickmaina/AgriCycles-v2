@@ -71,45 +71,40 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text('Basic details',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 16)),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _name,
                   textCapitalization: TextCapitalization.words,
-                  decoration:
-                      const InputDecoration(labelText: 'Full name'),
-                  validator: (v) =>
-                      Validators.requiredText(v, label: 'Name'),
+                  decoration: const InputDecoration(labelText: 'Full name'),
+                  validator: (v) => Validators.requiredText(v, label: 'Name'),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _phone,
                   keyboardType: TextInputType.phone,
-                  decoration:
-                      const InputDecoration(labelText: 'Phone number'),
+                  decoration: const InputDecoration(labelText: 'Phone number'),
                   validator: Validators.phone,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                      labelText: 'Email (optional)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Email (optional)'),
                   validator: Validators.email,
                 ),
                 const SizedBox(height: 24),
                 const Text('Location',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 16)),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _county,
-                  decoration:
-                      const InputDecoration(labelText: 'County'),
+                  decoration: const InputDecoration(labelText: 'County'),
                   items: KenyaLocations.counties
-                      .map((c) =>
-                          DropdownMenuItem(value: c, child: Text(c)))
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
                   onChanged: (v) => setState(() => _county = v),
                   validator: Validators.county,
@@ -118,8 +113,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _subCounty,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                      labelText: 'Sub-county'),
+                  decoration: const InputDecoration(labelText: 'Sub-county'),
                   validator: (v) =>
                       Validators.requiredText(v, label: 'Sub-county'),
                 ),
@@ -127,10 +121,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _area,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                      labelText: 'Area / Village'),
-                  validator: (v) =>
-                      Validators.requiredText(v, label: 'Area'),
+                  decoration:
+                      const InputDecoration(labelText: 'Area / Village'),
+                  validator: (v) => Validators.requiredText(v, label: 'Area'),
                 ),
                 const SizedBox(height: 28),
                 ElevatedButton(
@@ -147,15 +140,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => context.go(AppRoutes.login),
-                  child:
-                      const Text('Already have an account? Sign in'),
+                  child: const Text('Already have an account? Sign in'),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Contact privacy: your phone and exact address are never shown publicly.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 12, color: AppColors.textMuted),
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                 ),
               ],
             ),

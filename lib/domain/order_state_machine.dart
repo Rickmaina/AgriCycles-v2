@@ -34,21 +34,21 @@ class OrderStateMachine {
   static Actor? currentActor(OrderState state) {
     switch (state) {
       case OrderState.requested:
-        return Actor.seller;        // seller must respond (accept/negotiate/decline)
+        return Actor.seller; // seller must respond (accept/negotiate/decline)
       case OrderState.negotiation:
-        return Actor.seller;        // seller accepts or counters
+        return Actor.seller; // seller accepts or counters
       case OrderState.accepted:
-        return Actor.buyer;         // buyer secures payment
+        return Actor.buyer; // buyer secures payment
       case OrderState.paymentSecured:
-        return Actor.admin;         // admin assigns pickup
+        return Actor.admin; // admin assigns pickup
       case OrderState.pickupScheduled:
-        return Actor.admin;         // admin marks delivered
+        return Actor.admin; // admin marks delivered
       case OrderState.qualityConfirmed:
-        return Actor.buyer;         // buyer confirms and completes
+        return Actor.buyer; // buyer confirms and completes
       case OrderState.completed:
-        return Actor.buyer;         // release payment
+        return Actor.buyer; // release payment
       case OrderState.paymentReleased:
-        return Actor.buyer;         // rate
+        return Actor.buyer; // rate
       case OrderState.rated:
       case OrderState.declined:
       case OrderState.expired:
@@ -61,14 +61,22 @@ class OrderStateMachine {
   /// Returns null for branch/terminal states.
   static OrderState? nextState(OrderState state) {
     switch (state) {
-      case OrderState.requested:        return OrderState.negotiation;
-      case OrderState.negotiation:      return OrderState.accepted;
-      case OrderState.accepted:         return OrderState.paymentSecured;
-      case OrderState.paymentSecured:   return OrderState.pickupScheduled;
-      case OrderState.pickupScheduled:  return OrderState.qualityConfirmed;
-      case OrderState.qualityConfirmed: return OrderState.completed;
-      case OrderState.completed:        return OrderState.paymentReleased;
-      case OrderState.paymentReleased:  return OrderState.rated;
+      case OrderState.requested:
+        return OrderState.negotiation;
+      case OrderState.negotiation:
+        return OrderState.accepted;
+      case OrderState.accepted:
+        return OrderState.paymentSecured;
+      case OrderState.paymentSecured:
+        return OrderState.pickupScheduled;
+      case OrderState.pickupScheduled:
+        return OrderState.qualityConfirmed;
+      case OrderState.qualityConfirmed:
+        return OrderState.completed;
+      case OrderState.completed:
+        return OrderState.paymentReleased;
+      case OrderState.paymentReleased:
+        return OrderState.rated;
       case OrderState.rated:
       case OrderState.declined:
       case OrderState.expired:
@@ -101,10 +109,10 @@ class OrderStateMachine {
 
   /// Branch transitions available from any state.
   static const Map<OrderState, List<OrderState>> branchTransitions = {
-    OrderState.requested:  [OrderState.declined, OrderState.expired],
+    OrderState.requested: [OrderState.declined, OrderState.expired],
     OrderState.negotiation: [OrderState.declined, OrderState.expired],
-    OrderState.accepted:   [OrderState.disputed],
-    OrderState.paymentSecured:  [OrderState.disputed],
+    OrderState.accepted: [OrderState.disputed],
+    OrderState.paymentSecured: [OrderState.disputed],
     OrderState.pickupScheduled: [OrderState.disputed],
     OrderState.qualityConfirmed: [OrderState.disputed],
   };
@@ -121,12 +129,18 @@ enum Actor { farmer, buyer, seller, company, admin, system }
 extension ActorLabel on Actor {
   String get label {
     switch (this) {
-      case Actor.farmer:  return 'Farmer';
-      case Actor.buyer:   return 'Buyer';
-      case Actor.seller:  return 'Seller';
-      case Actor.company: return 'Company';
-      case Actor.admin:   return 'Admin';
-      case Actor.system:  return 'System';
+      case Actor.farmer:
+        return 'Farmer';
+      case Actor.buyer:
+        return 'Buyer';
+      case Actor.seller:
+        return 'Seller';
+      case Actor.company:
+        return 'Company';
+      case Actor.admin:
+        return 'Admin';
+      case Actor.system:
+        return 'System';
     }
   }
 }

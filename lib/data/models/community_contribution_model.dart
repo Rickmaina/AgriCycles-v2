@@ -10,8 +10,8 @@ class CommunityContributionModel {
   final String farmerName;
 
   final double committedQuantity;
-  final double? acceptedQuantity;    // set after buyer review
-  final double pricePerUnit;         // locked at commit time
+  final double? acceptedQuantity; // set after buyer review
+  final double pricePerUnit; // locked at commit time
 
   final String pickupCounty;
   final String pickupSubCounty;
@@ -35,8 +35,7 @@ class CommunityContributionModel {
     required this.createdAt,
   });
 
-  double get effectiveQuantity =>
-      acceptedQuantity ?? committedQuantity;
+  double get effectiveQuantity => acceptedQuantity ?? committedQuantity;
 
   double get subtotal => effectiveQuantity * pricePerUnit;
 

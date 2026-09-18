@@ -52,8 +52,7 @@ class _DisputeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) =>
-                DisputeDetailScreen(disputeId: dispute.id),
+            builder: (_) => DisputeDetailScreen(disputeId: dispute.id),
           ),
         ),
         child: Container(
@@ -75,8 +74,8 @@ class _DisputeCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 9, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
@@ -104,9 +103,7 @@ class _DisputeCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                    height: 1.4),
+                    fontSize: 12, color: AppColors.textSecondary, height: 1.4),
               ),
               const SizedBox(height: 10),
               Row(
@@ -123,8 +120,8 @@ class _DisputeCard extends StatelessWidget {
                   else
                     const Text(
                       'Full order',
-                      style: TextStyle(
-                          fontSize: 12, color: AppColors.textMuted),
+                      style:
+                          TextStyle(fontSize: 12, color: AppColors.textMuted),
                     ),
                   const Spacer(),
                   Text(
@@ -133,8 +130,7 @@ class _DisputeCard extends StatelessWidget {
                         fontSize: 11, color: AppColors.textMuted),
                   ),
                   const SizedBox(width: 6),
-                  const Icon(Icons.chevron_right,
-                      color: AppColors.textMuted),
+                  const Icon(Icons.chevron_right, color: AppColors.textMuted),
                 ],
               ),
             ],

@@ -20,12 +20,9 @@ class OrderModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  // Pickup (where the goods are)
   final String pickupCounty;
   final String pickupSubCounty;
   final String pickupArea;
-
-  // Delivery (where the buyer wants them)
   final String deliveryCounty;
   final String deliverySubCounty;
   final String deliveryArea;

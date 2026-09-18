@@ -101,28 +101,23 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Text(
             request.resourceType as String,
-            style: const TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
             'from ${request.buyerName}',
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 14),
-          _row('Needs',
-              '${request.quantity} ${request.unit}'),
+          _row('Needs', '${request.quantity} ${request.unit}'),
           const SizedBox(height: 6),
           _row('Offering',
               '${(request.offeredPricePerUnit as double).kes} / ${request.unit}'),
           const SizedBox(height: 6),
-          _row('Total budget',
-              (request.totalBudget as double).kes,
-              bold: true),
+          _row('Total budget', (request.totalBudget as double).kes, bold: true),
           const Divider(height: 24, color: AppColors.border),
-          _row('Deliver to',
-              '${request.deliveryBroadLocation}'),
+          _row('Deliver to', '${request.deliveryBroadLocation}'),
           if (request.description != null) ...[
             const SizedBox(height: 10),
             Container(
@@ -147,8 +142,8 @@ class _SummaryCard extends StatelessWidget {
     return Row(
       children: [
         Text(label,
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary)),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
         const Spacer(),
         Flexible(
           child: Text(
@@ -184,8 +179,7 @@ class _EmptyOffers extends StatelessWidget {
           Expanded(
             child: Text(
               'No seller offers yet. Sellers are notified when you post.',
-              style: TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -289,9 +283,7 @@ class _BuyerOfferCard extends ConsumerWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      ref
-                          .read(buyRequestControllerProvider)
-                          .acceptOffer(offer);
+                      ref.read(buyRequestControllerProvider).acceptOffer(offer);
                       context.showSnack(
                           'Offer accepted — seller will contact you');
                     },
@@ -316,15 +308,13 @@ class _BuyerOfferCard extends ConsumerWidget {
           width: 84,
           child: Text(
             label,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -385,10 +375,10 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
   @override
   void initState() {
     super.initState();
-    _quantity = TextEditingController(
-        text: widget.suggestedQty.toStringAsFixed(0));
-    _price = TextEditingController(
-        text: widget.suggestedPrice.toStringAsFixed(0));
+    _quantity =
+        TextEditingController(text: widget.suggestedQty.toStringAsFixed(0));
+    _price =
+        TextEditingController(text: widget.suggestedPrice.toStringAsFixed(0));
   }
 
   @override
@@ -406,8 +396,7 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
     final user = ref.read(authProvider);
     if (user == null) return;
 
-    final request =
-        ref.read(buyRequestByIdProvider(widget.requestId));
+    final request = ref.read(buyRequestByIdProvider(widget.requestId));
     if (request == null) return;
 
     ref.read(buyRequestControllerProvider).submitOffer(
@@ -419,9 +408,7 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
           pickupCounty: _county!,
           pickupSubCounty: _subCounty.text.trim(),
           pickupArea: _area.text.trim(),
-          message: _message.text.trim().isEmpty
-              ? null
-              : _message.text.trim(),
+          message: _message.text.trim().isEmpty ? null : _message.text.trim(),
         );
 
     context.showSnack('Offer sent to buyer');
@@ -437,30 +424,24 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
         children: [
           TextFormField(
             controller: _quantity,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                  RegExp(r'^\d*\.?\d{0,2}')),
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
             ],
             decoration: InputDecoration(
                 labelText: 'Quantity you can supply (${widget.unit})'),
-            validator: (v) =>
-                Validators.positiveNumber(v, label: 'Quantity'),
+            validator: (v) => Validators.positiveNumber(v, label: 'Quantity'),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _price,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                  RegExp(r'^\d*\.?\d{0,2}')),
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
             ],
-            decoration: const InputDecoration(
-                labelText: 'Your price per unit (KES)'),
-            validator: (v) =>
-                Validators.positiveNumber(v, label: 'Price'),
+            decoration:
+                const InputDecoration(labelText: 'Your price per unit (KES)'),
+            validator: (v) => Validators.positiveNumber(v, label: 'Price'),
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -478,8 +459,7 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
             initialValue: _county,
             decoration: const InputDecoration(labelText: 'County'),
             items: KenyaLocations.counties
-                .map((c) =>
-                    DropdownMenuItem(value: c, child: Text(c)))
+                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                 .toList(),
             onChanged: (v) => setState(() => _county = v),
             validator: Validators.county,
@@ -488,17 +468,14 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
           TextFormField(
             controller: _subCounty,
             textCapitalization: TextCapitalization.words,
-            decoration:
-                const InputDecoration(labelText: 'Sub-county'),
-            validator: (v) =>
-                Validators.requiredText(v, label: 'Sub-county'),
+            decoration: const InputDecoration(labelText: 'Sub-county'),
+            validator: (v) => Validators.requiredText(v, label: 'Sub-county'),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _area,
             textCapitalization: TextCapitalization.words,
-            decoration:
-                const InputDecoration(labelText: 'Area / Village'),
+            decoration: const InputDecoration(labelText: 'Area / Village'),
             validator: (v) => Validators.requiredText(v, label: 'Area'),
           ),
           const SizedBox(height: 20),

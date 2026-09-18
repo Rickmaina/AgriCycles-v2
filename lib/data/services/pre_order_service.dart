@@ -27,8 +27,6 @@ class PreOrderService extends StateNotifier<PreOrderState> {
   PreOrderService()
       : super(const PreOrderState(preOrders: [], contributions: []));
 
-  // ── Pre-orders ────────────────────────────────────────────────
-
   void create(PreOrderModel preOrder) {
     state = state.copyWith(preOrders: [preOrder, ...state.preOrders]);
   }
@@ -54,28 +52,23 @@ class PreOrderService extends StateNotifier<PreOrderState> {
     );
   }
 
-  // ── Contributions ─────────────────────────────────────────────
-
   List<CommunityContributionModel> contributionsFor(String preOrderId) =>
-      state.contributions
-          .where((c) => c.preOrderId == preOrderId)
-          .toList();
+      state.contributions.where((c) => c.preOrderId == preOrderId).toList();
 
   List<CommunityContributionModel> contributionsByFarmer(String farmerId) =>
       state.contributions.where((c) => c.farmerId == farmerId).toList();
 
   /// Sum of committed quantities (regardless of status) for a pre-order.
-  double totalCommitted(String preOrderId) =>
-      contributionsFor(preOrderId)
-          .where((c) => c.status == ContributionStatus.committed ||
-              c.status == ContributionStatus.confirmed)
-          .fold<double>(0, (sum, c) => sum + c.committedQuantity);
+  double totalCommitted(String preOrderId) => contributionsFor(preOrderId)
+      .where((c) =>
+          c.status == ContributionStatus.committed ||
+          c.status == ContributionStatus.confirmed)
+      .fold<double>(0, (sum, c) => sum + c.committedQuantity);
 
   /// Sum of confirmed quantities (post-buyer review).
-  double totalConfirmed(String preOrderId) =>
-      contributionsFor(preOrderId)
-          .where((c) => c.status == ContributionStatus.confirmed)
-          .fold<double>(0, (sum, c) => sum + c.effectiveQuantity);
+  double totalConfirmed(String preOrderId) => contributionsFor(preOrderId)
+      .where((c) => c.status == ContributionStatus.confirmed)
+      .fold<double>(0, (sum, c) => sum + c.effectiveQuantity);
 
   /// 0.0 – 1.0 progress toward the target.
   double progress(String preOrderId) {
@@ -142,7 +135,6 @@ class PreOrderService extends StateNotifier<PreOrderState> {
   }
 }
 
-final preOrderProvider =
-    StateNotifierProvider<PreOrderService, PreOrderState>(
+final preOrderProvider = StateNotifierProvider<PreOrderService, PreOrderState>(
   (ref) => PreOrderService(),
 );

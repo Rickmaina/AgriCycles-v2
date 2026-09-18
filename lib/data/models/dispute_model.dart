@@ -10,13 +10,13 @@ class DisputeModel {
 
   final String raisedById;
   final String raisedByName;
-  final String raisedByRole;   // 'buyer' | 'seller'
+  final String raisedByRole; // 'buyer' | 'seller'
 
   final DisputeIssueType issueType;
   final String description;
-  final double? affectedQuantity;   // null for full-order dispute
-  final double? affectedAmount;     // in KES, null if not monetary
-  final List<String> evidenceRefs;  // filenames / refs, not raw URLs
+  final double? affectedQuantity; // null for full-order dispute
+  final double? affectedAmount; // in KES, null if not monetary
+  final List<String> evidenceRefs; // filenames / refs, not raw URLs
 
   final DisputeStatus status;
   final DisputeResolution? resolution;

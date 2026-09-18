@@ -47,8 +47,7 @@ class PreOrderModel {
 
   double get totalBudget => targetQuantity * offeredPricePerUnit;
 
-  String get deliveryBroadLocation =>
-      '$deliveryArea, $deliverySubCounty';
+  String get deliveryBroadLocation => '$deliveryArea, $deliverySubCounty';
 
   PreOrderModel copyWith({PreOrderStatus? status}) => PreOrderModel(
         id: id,

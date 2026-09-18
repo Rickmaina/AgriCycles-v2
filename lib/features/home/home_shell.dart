@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/constants/enums.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/role_theme.dart';
 import '../../data/services/auth_service.dart';
 import '../admin/logistics_queue_screen.dart';
 import '../admin/verification_queue_screen.dart';
@@ -16,6 +17,7 @@ import '../../data/services/notification_service.dart';
 import '../marketplace/create_listing_screen.dart';
 import '../orders/orders_list_screen.dart';
 import '../profile/profile_screen.dart';
+import 'controllers/shell_tab_controller.dart';
 import 'farmer_dashboard.dart';
 import 'widgets/admin_home.dart';
 import 'widgets/company_home.dart';
@@ -29,11 +31,10 @@ class HomeShell extends ConsumerStatefulWidget {
 }
 
 class _HomeShellState extends ConsumerState<HomeShell> {
-  int _index = 0;
-
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider);
+    final index = ref.watch(shellTabProvider);
 
     if (user == null) {
       return const Scaffold(
@@ -42,11 +43,23 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
 
     final navItems = _navItemsFor(user.role);
-    if (_index >= navItems.length) _index = 0;
+    final safeIndex = index >= navItems.length ? 0 : index;
+
+    final roleTheme = RoleTheme.of(user.role);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Hi, ${user.name.split(" ").first}'),
+        backgroundColor: roleTheme.appBarBackground,
+        foregroundColor: roleTheme.appBarForeground,
+        elevation: 0,
+        title: Text(
+          'Hi, ${user.name.split(" ").first}',
+          style: TextStyle(
+            color: roleTheme.appBarForeground,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        iconTheme: IconThemeData(color: roleTheme.appBarForeground),
         actions: [
           Consumer(
             builder: (context, ref, _) {
@@ -69,8 +82,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 5, vertical: 1),
-                        constraints:
-                            const BoxConstraints(minWidth: 16),
+                        constraints: const BoxConstraints(minWidth: 16),
                         decoration: BoxDecoration(
                           color: AppColors.danger,
                           borderRadius: BorderRadius.circular(10),
@@ -100,21 +112,22 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           ),
         ],
       ),
-      floatingActionButton: _fabFor(user.role, _index),
-      body: _bodyFor(user.role, _index),
+      floatingActionButton: _fabFor(user.role, safeIndex),
+      body: _bodyFor(user.role, safeIndex),
       bottomNavigationBar: navItems.length == 1
           ? null
           : BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
-              currentIndex: _index,
-              selectedItemColor: AppColors.primary,
-              unselectedItemColor: AppColors.textMuted,
-              onTap: (i) => setState(() => _index = i),
+              currentIndex: safeIndex,
+              selectedItemColor: roleTheme.primary,
+              unselectedItemColor: roleTheme.textMuted,
+              backgroundColor: roleTheme.surface,
+              onTap: (i) => ref.read(shellTabProvider.notifier).goTo(i),
               items: navItems
                   .map((n) => BottomNavigationBarItem(
                         icon: Icon(n.icon),
                         activeIcon:
-                            Icon(n.activeIcon, color: AppColors.primary),
+                            Icon(n.activeIcon, color: roleTheme.primary),
                         label: n.label,
                       ))
                   .toList(),
@@ -155,8 +168,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.add_box_outlined,
-                  color: AppColors.primary),
+              leading:
+                  const Icon(Icons.add_box_outlined, color: AppColors.primary),
               title: const Text('Sell a resource'),
               subtitle: const Text('List crop waste, manure, feed'),
               onTap: () {
@@ -169,8 +182,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.campaign_outlined,
-                  color: AppColors.primary),
+              leading:
+                  const Icon(Icons.campaign_outlined, color: AppColors.primary),
               title: const Text('Post a need'),
               subtitle: const Text('Buy-first: state what you need'),
               onTap: () {
@@ -183,8 +196,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.groups_outlined,
-                  color: AppColors.primary),
+              leading:
+                  const Icon(Icons.groups_outlined, color: AppColors.primary),
               title: const Text('Start community order'),
               subtitle: const Text('Aggregate across many farms'),
               onTap: () {
@@ -266,8 +279,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         return const [
           _NavItem(Icons.home_outlined, Icons.home, 'Home'),
           _NavItem(Icons.verified_user_outlined, Icons.verified_user, 'Verify'),
-          _NavItem(Icons.local_shipping_outlined, Icons.local_shipping,
-              'Logistics'),
+          _NavItem(
+              Icons.local_shipping_outlined, Icons.local_shipping, 'Logistics'),
           _NavItem(Icons.gavel_outlined, Icons.gavel, 'Disputes'),
           _NavItem(Icons.person_outline, Icons.person, 'Profile'),
         ];

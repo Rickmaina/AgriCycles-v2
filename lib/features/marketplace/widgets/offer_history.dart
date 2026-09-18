@@ -46,8 +46,7 @@ class OfferHistory extends ConsumerWidget {
             createdAt: c.createdAt,
             isOpening: false,
           ),
-        if (currentActorId != null && currentActorName != null)
-          _turnHint(),
+        if (currentActorId != null && currentActorName != null) _turnHint(),
       ],
     );
   }
@@ -135,14 +134,13 @@ class OfferHistory extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.hourglass_top,
-              size: 16, color: AppColors.warning),
+          const Icon(Icons.hourglass_top, size: 16, color: AppColors.warning),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Waiting on $currentActorName to respond',
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],

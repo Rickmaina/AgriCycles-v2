@@ -128,17 +128,15 @@ class _OfferCard extends ConsumerWidget {
     final controller = ref.read(marketplaceControllerProvider);
     final decided = offer.status == OfferStatus.accepted ||
         offer.status == OfferStatus.declined;
-    final expired =
-        ref.read(marketplaceProvider.notifier).isExpired(offer);
+    final expired = ref.read(marketplaceProvider.notifier).isExpired(offer);
     final capped = controller.isNegotiationClosed(offer);
     final myTurn = controller.canActorCounter(
       offer: offer,
       actorId: user.id,
     );
     final nextId = controller.nextActorId(offer);
-    final nextName = nextId == offer.buyerId
-        ? offer.buyerName
-        : offer.sellerName;
+    final nextName =
+        nextId == offer.buyerId ? offer.buyerName : offer.sellerName;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -167,8 +165,7 @@ class _OfferCard extends ConsumerWidget {
             offer: offer,
             unit: listing.unit,
             currentActorId: decided || capped || expired ? null : nextId,
-            currentActorName:
-                decided || capped || expired ? null : nextName,
+            currentActorName: decided || capped || expired ? null : nextName,
           ),
           const SizedBox(height: 4),
           _line('Deliver to',
@@ -210,8 +207,7 @@ class _OfferCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed:
-                        myTurn ? () => _counter(context, ref) : null,
+                    onPressed: myTurn ? () => _counter(context, ref) : null,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(color: AppColors.primary),
@@ -223,8 +219,7 @@ class _OfferCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed:
-                        myTurn ? () => _accept(context, ref) : null,
+                    onPressed: myTurn ? () => _accept(context, ref) : null,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size.fromHeight(44),
                     ),
@@ -257,8 +252,8 @@ class _OfferCard extends ConsumerWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -274,15 +269,13 @@ class _OfferCard extends ConsumerWidget {
           width: 72,
           child: Text(
             label,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       ],

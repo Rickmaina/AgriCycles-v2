@@ -24,8 +24,6 @@ class AdminController {
 final adminControllerProvider =
     Provider<AdminController>((ref) => AdminController(ref));
 
-// ── Derived providers ─────────────────────────────────────────────
-
 /// Pending items only, optionally filtered by type.
 final pendingVerificationsProvider =
     Provider.family<List<VerificationRequestModel>, VerificationType?>(

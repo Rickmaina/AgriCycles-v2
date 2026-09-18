@@ -39,6 +39,10 @@ class OrderDetailScreen extends ConsumerWidget {
           _SummaryCard(order: order, isBuyer: isBuyer),
           const SizedBox(height: 16),
           _RouteCard(order: order),
+          if (user.role == UserRole.company) ...[
+            const SizedBox(height: 16),
+            _CompanyPickupStrip(order: order),
+          ],
           const SizedBox(height: 20),
           const _SectionLabel('Status'),
           const SizedBox(height: 12),
@@ -102,8 +106,7 @@ class OrderDetailScreen extends ConsumerWidget {
         },
       );
     }
-    final labels =
-        OrderStateMachine.linearFlow.map((s) => s.label).toList();
+    final labels = OrderStateMachine.linearFlow.map((s) => s.label).toList();
     final idx = OrderStateMachine.stepIndex(order.state);
     return StatusTracker(steps: labels, currentIndex: idx);
   }
@@ -141,16 +144,13 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Text(
             order.resourceType,
-            style: const TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
-            isBuyer
-                ? 'from ${order.sellerName}'
-                : 'to ${order.buyerName}',
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary),
+            isBuyer ? 'from ${order.sellerName}' : 'to ${order.buyerName}',
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 14),
           _row('Quantity', '${order.quantity} ${order.unit}'),
@@ -171,8 +171,8 @@ class _SummaryCard extends StatelessWidget {
     return Row(
       children: [
         Text(label,
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary)),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
         const Spacer(),
         Flexible(
           child: Text(
@@ -289,8 +289,8 @@ class _RouteCard extends StatelessWidget {
                   children: [
                     const Text(
                       'Est. transport',
-                      style: TextStyle(
-                          fontSize: 11, color: AppColors.textMuted),
+                      style:
+                          TextStyle(fontSize: 11, color: AppColors.textMuted),
                     ),
                     Text(
                       cost.kes,
@@ -307,8 +307,7 @@ class _RouteCard extends StatelessWidget {
             const SizedBox(height: 6),
             const Text(
               'Straight-line estimate. Final rate confirmed by Admin-assigned transporter.',
-              style:
-                  TextStyle(fontSize: 11, color: AppColors.textMuted),
+              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
             ),
           ],
         ],
@@ -342,20 +341,18 @@ class _RouteCard extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: color),
+                    fontSize: 11, fontWeight: FontWeight.w700, color: color),
               ),
               const SizedBox(height: 2),
               Text(
                 location,
-                style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600),
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
               Text(
                 county,
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.textMuted),
+                style:
+                    const TextStyle(fontSize: 11, color: AppColors.textMuted),
               ),
             ],
           ),
@@ -377,8 +374,7 @@ class _LogisticsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.info.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppColors.info.withValues(alpha: 0.25)),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -391,8 +387,7 @@ class _LogisticsCard extends StatelessWidget {
               children: [
                 const Text(
                   'Admin-mediated pickup',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 13),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -462,5 +457,68 @@ class _ActionButton extends ConsumerWidget {
     }
 
     controller.advance(order.id);
+  }
+}
+
+class _CompanyPickupStrip extends StatelessWidget {
+  final OrderModel order;
+  const _CompanyPickupStrip({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.route_outlined, size: 18, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text(
+                'Coordination details',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _row('Pickup contact', order.sellerName),
+          const SizedBox(height: 6),
+          _row('Pickup area', order.pickupBroadLocation),
+          const SizedBox(height: 6),
+          _row('Deliver to', order.deliveryBroadLocation),
+          if (order.deliveryNotes != null) ...[
+            const SizedBox(height: 6),
+            _row('Landmark', order.deliveryNotes!),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _row(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 108,
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
   }
 }

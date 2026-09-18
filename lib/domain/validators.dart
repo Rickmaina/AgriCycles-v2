@@ -4,10 +4,6 @@
 class Validators {
   Validators._();
 
-  // ─────────────────────────────────────────────────────────────
-  // Identity
-  // ─────────────────────────────────────────────────────────────
-
   static String? requiredText(String? v, {String label = 'Field'}) {
     if (v == null || v.trim().isEmpty) return '$label is required';
     return null;
@@ -27,10 +23,6 @@ class Validators {
     if (!re.hasMatch(v.trim())) return 'Enter a valid email';
     return null;
   }
-
-  // ─────────────────────────────────────────────────────────────
-  // Numbers
-  // ─────────────────────────────────────────────────────────────
 
   static String? positiveNumber(
     String? v, {
@@ -57,19 +49,11 @@ class Validators {
     return null;
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Vehicles
-  // ─────────────────────────────────────────────────────────────
-
   static String? plateNumber(String? v) {
     if (v == null || v.trim().length < 5) return 'Enter plate number';
     if (v.trim().length > 10) return 'Plate number is too long';
     return null;
   }
-
-  // ─────────────────────────────────────────────────────────────
-  // Location
-  // ─────────────────────────────────────────────────────────────
 
   static String? county(String? v) {
     if (v == null || v.trim().isEmpty) return 'Select a county';

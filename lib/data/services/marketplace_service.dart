@@ -121,9 +121,8 @@ class MarketplaceService extends StateNotifier<MarketplaceState> {
   }
 
   List<CounterOfferModel> counterOffersFor(String offerId) {
-    final list = state.counterOffers
-        .where((c) => c.offerId == offerId)
-        .toList();
+    final list =
+        state.counterOffers.where((c) => c.offerId == offerId).toList();
     list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return list;
   }
@@ -166,9 +165,8 @@ class MarketplaceService extends StateNotifier<MarketplaceState> {
     state = state.copyWith(
       counterOffers: [...state.counterOffers, counter],
       offers: state.offers
-          .map((o) => o.id == offer.id
-              ? o.copyWith(status: OfferStatus.countered)
-              : o)
+          .map((o) =>
+              o.id == offer.id ? o.copyWith(status: OfferStatus.countered) : o)
           .toList(),
     );
     return counter;

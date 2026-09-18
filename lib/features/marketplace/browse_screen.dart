@@ -49,8 +49,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
           child: Text(
             '${results.length} listing${results.length == 1 ? '' : 's'}',
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
         ),
         Expanded(
@@ -62,8 +61,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                 )
               : GridView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,

@@ -11,17 +11,14 @@ class OrderService extends StateNotifier<List<OrderModel>> {
 
   static final _log = Logger.of('OrderService');
 
-  // ── Queries ───────────────────────────────────────────────────
-
   List<OrderModel> asBuyer(String userId) =>
       state.where((o) => o.buyerId == userId).toList();
 
   List<OrderModel> asSeller(String userId) =>
       state.where((o) => o.sellerId == userId).toList();
 
-  List<OrderModel> forUser(String userId) => state
-      .where((o) => o.buyerId == userId || o.sellerId == userId)
-      .toList();
+  List<OrderModel> forUser(String userId) =>
+      state.where((o) => o.buyerId == userId || o.sellerId == userId).toList();
 
   OrderModel? byId(String id) {
     for (final o in state) {
@@ -29,8 +26,6 @@ class OrderService extends StateNotifier<List<OrderModel>> {
     }
     return null;
   }
-
-  // ── Mutations ─────────────────────────────────────────────────
 
   /// Advance a single order to a specific state. Logistics sub-state is
   /// derived from [OrderStateMachine.logisticsFor]. Silently no-ops if
@@ -113,7 +108,6 @@ class OrderService extends StateNotifier<List<OrderModel>> {
   }
 }
 
-final ordersProvider =
-    StateNotifierProvider<OrderService, List<OrderModel>>(
+final ordersProvider = StateNotifierProvider<OrderService, List<OrderModel>>(
   (ref) => OrderService(),
 );

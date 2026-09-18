@@ -88,20 +88,18 @@ class PreOrderController {
       );
 
   double progress(String preOrderId) => _svc.progress(preOrderId);
-  double totalCommitted(String preOrderId) =>
-      _svc.totalCommitted(preOrderId);
-  double totalConfirmed(String preOrderId) =>
-      _svc.totalConfirmed(preOrderId);
+  double totalCommitted(String preOrderId) => _svc.totalCommitted(preOrderId);
+  double totalConfirmed(String preOrderId) => _svc.totalConfirmed(preOrderId);
   bool isTargetMet(String preOrderId) => _svc.isTargetMet(preOrderId);
 }
 
 final preOrderControllerProvider =
     Provider<PreOrderController>((ref) => PreOrderController(ref));
 
-// ── Derived providers ─────────────────────────────────────────────
-
 final openPreOrdersProvider = Provider<List<PreOrderModel>>(
-  (ref) => ref.watch(preOrderProvider).preOrders
+  (ref) => ref
+      .watch(preOrderProvider)
+      .preOrders
       .where((p) => p.status == PreOrderStatus.open)
       .toList(),
 );
@@ -115,16 +113,16 @@ final myPreOrdersProvider =
       .toList();
 });
 
-final preOrderByIdProvider =
-    Provider.family<PreOrderModel?, String>((ref, id) {
+final preOrderByIdProvider = Provider.family<PreOrderModel?, String>((ref, id) {
   for (final p in ref.watch(preOrderProvider).preOrders) {
     if (p.id == id) return p;
   }
   return null;
 });
 
-final contributionsForProvider = Provider.family<
-    List<CommunityContributionModel>, String>((ref, preOrderId) {
+final contributionsForProvider =
+    Provider.family<List<CommunityContributionModel>, String>(
+        (ref, preOrderId) {
   return ref
       .watch(preOrderProvider)
       .contributions

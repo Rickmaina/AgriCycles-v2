@@ -85,18 +85,15 @@ class OrdersController {
 final ordersControllerProvider =
     Provider<OrdersController>((ref) => OrdersController(ref));
 
-// ── Derived providers ─────────────────────────────────────────────
-
-final buyingOrdersProvider =
-    Provider.family<List<OrderModel>, String>((ref, userId) =>
+final buyingOrdersProvider = Provider.family<List<OrderModel>, String>(
+    (ref, userId) =>
         ref.watch(ordersProvider).where((o) => o.buyerId == userId).toList());
 
-final sellingOrdersProvider =
-    Provider.family<List<OrderModel>, String>((ref, userId) =>
+final sellingOrdersProvider = Provider.family<List<OrderModel>, String>(
+    (ref, userId) =>
         ref.watch(ordersProvider).where((o) => o.sellerId == userId).toList());
 
-final orderByIdProvider =
-    Provider.family<OrderModel?, String>((ref, orderId) {
+final orderByIdProvider = Provider.family<OrderModel?, String>((ref, orderId) {
   for (final o in ref.watch(ordersProvider)) {
     if (o.id == orderId) return o;
   }

@@ -12,8 +12,7 @@ class BuyRequestController {
 
   BuyRequestService get _svc => _ref.read(buyRequestProvider.notifier);
 
-  bool isCommunityScale(double quantity) =>
-      _svc.isCommunityScale(quantity);
+  bool isCommunityScale(double quantity) => _svc.isCommunityScale(quantity);
 
   BuyRequestModel postRequest({
     required String buyerId,
@@ -101,7 +100,9 @@ final buyRequestControllerProvider =
     Provider<BuyRequestController>((ref) => BuyRequestController(ref));
 
 final openBuyRequestsProvider = Provider<List<BuyRequestModel>>(
-  (ref) => ref.watch(buyRequestProvider).requests
+  (ref) => ref
+      .watch(buyRequestProvider)
+      .requests
       .where((r) => r.status == BuyRequestStatus.open)
       .toList(),
 );
@@ -123,8 +124,8 @@ final buyRequestByIdProvider =
   return null;
 });
 
-final buyRequestOffersProvider = Provider
-    .family<List<BuyRequestOfferModel>, String>((ref, requestId) {
+final buyRequestOffersProvider =
+    Provider.family<List<BuyRequestOfferModel>, String>((ref, requestId) {
   return ref
       .watch(buyRequestProvider)
       .offers
