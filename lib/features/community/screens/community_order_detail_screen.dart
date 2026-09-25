@@ -659,7 +659,7 @@ class _ContributeFormState extends ConsumerState<_ContributeForm> {
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
-            initialValue: _county,
+            value: _county,
             decoration: const InputDecoration(labelText: 'County'),
             items: KenyaLocations.counties
                 .map((c) =>

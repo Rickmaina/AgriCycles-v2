@@ -151,7 +151,7 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  initialValue: _deliveryCounty,
+                  value: _deliveryCounty,
                   decoration: const InputDecoration(labelText: 'County'),
                   items: KenyaLocations.counties
                       .map((c) =>

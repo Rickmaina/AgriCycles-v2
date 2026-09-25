@@ -475,7 +475,7 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
           const _SectionLabel('Your pickup point'),
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
-            initialValue: _county,
+            value: _county,
             decoration: const InputDecoration(labelText: 'County'),
             items: KenyaLocations.counties
                 .map((c) =>

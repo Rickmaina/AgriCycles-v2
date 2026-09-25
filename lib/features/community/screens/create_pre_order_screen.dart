@@ -133,7 +133,7 @@ class _CreatePreOrderScreenState
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _category,
+                value: _category,
                 decoration: const InputDecoration(labelText: 'Category'),
                 items: _categories
                     .map((c) =>
@@ -169,7 +169,7 @@ class _CreatePreOrderScreenState
                   Expanded(
                     flex: 2,
                     child: DropdownButtonFormField<String>(
-                      initialValue: _unit,
+                      value: _unit,
                       decoration:
                           const InputDecoration(labelText: 'Unit'),
                       items: _units
@@ -244,7 +244,7 @@ class _CreatePreOrderScreenState
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _county,
+                value: _county,
                 decoration: const InputDecoration(labelText: 'County'),
                 items: KenyaLocations.counties
                     .map((c) =>

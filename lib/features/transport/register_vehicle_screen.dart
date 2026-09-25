@@ -168,7 +168,7 @@ class _RegisterVehicleScreenState
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  initialValue: _county,
+                  value: _county,
                   decoration: const InputDecoration(
                       labelText: 'Operating county'),
                   items: KenyaLocations.counties

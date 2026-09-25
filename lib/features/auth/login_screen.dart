@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_routes.dart';
-import '../../core/constants/enums.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/extensions.dart';
-import '../transport/register_vehicle_screen.dart';
+import '../../domain/validators.dart';
 import 'controllers/auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -17,14 +16,30 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  UserRole? _loading;
+  final _formKey = GlobalKey<FormState>();
+  final _phone = TextEditingController();
+  final _password = TextEditingController();
+  bool _loading = false;
+  bool _showPassword = false;
 
-  Future<void> _login(UserRole role) async {
-    setState(() => _loading = role);
-    final result =
-        await ref.read(authControllerProvider).loginAsRole(role);
+  @override
+  void dispose() {
+    _phone.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+
+    final result = await ref.read(authControllerProvider).login(
+      phone: _phone.text.trim(),
+      password: _password.text,
+    );
+
     if (!mounted) return;
-    setState(() => _loading = null);
+    setState(() => _loading = false);
 
     result.when(
       success: (snap) {
@@ -42,144 +57,99 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 40),
-              Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.agriculture,
-                      color: Colors.white, size: 44),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'AgriCycles',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Recycle, trade, and value-add agricultural resources',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 40),
-              const Text(
-                'Continue as demo role',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _RoleTile(
-                icon: Icons.person,
-                label: 'Farmer',
-                busy: _loading == UserRole.farmer,
-                onTap: () => _login(UserRole.farmer),
-              ),
-              _RoleTile(
-                icon: Icons.business,
-                label: 'Company',
-                busy: _loading == UserRole.company,
-                onTap: () => _login(UserRole.company),
-              ),
-              _RoleTile(
-                icon: Icons.admin_panel_settings,
-                label: 'Admin',
-                busy: _loading == UserRole.admin,
-                onTap: () => _login(UserRole.admin),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _loading != null
-                    ? null
-                    : () => context.go(AppRoutes.register),
-                child: const Text('Create a new account'),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const RegisterVehicleScreen(),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 40),
+                Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.agriculture,
+                        color: Colors.white, size: 44),
                   ),
                 ),
-                child: const Text(
-                  'Register a transport vehicle',
+                const SizedBox(height: 24),
+                const Text(
+                  'AgriCycles',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Recycle, trade, and value-add agricultural resources',
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textSecondary),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+                const SizedBox(height: 40),
 
-class _RoleTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool busy;
-  final VoidCallback onTap;
+                // ── Phone ─────────────────────────────────────
+                TextFormField(
+                  controller: _phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone number',
+                    hintText: '0712345678',
+                  ),
+                  validator: Validators.phone,
+                ),
+                const SizedBox(height: 12),
 
-  const _RoleTile({
-    required this.icon,
-    required this.label,
-    required this.busy,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: busy ? null : onTap,
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: AppColors.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                // ── Password ──────────────────────────────────
+                TextFormField(
+                  controller: _password,
+                  obscureText: !_showPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(_showPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => _showPassword = !_showPassword),
                     ),
                   ),
+                  validator: (v) => (v == null || v.isEmpty)
+                      ? 'Password is required'
+                      : null,
                 ),
-                if (busy)
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                const SizedBox(height: 24),
+
+                ElevatedButton(
+                  onPressed: _loading ? null : _login,
+                  child: _loading
+                      ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
                   )
-                else
-                  const Icon(Icons.chevron_right,
-                      color: AppColors.textMuted),
+                      : const Text('Sign in'),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: _loading
+                      ? null
+                      : () => context.go(AppRoutes.register),
+                  child: const Text('Create a new account'),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Contact privacy: your phone and exact address are never shown publicly.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 12, color: AppColors.textMuted),
+                ),
               ],
             ),
           ),
