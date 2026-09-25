@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/enums.dart';
-import '../../core/errors/app_failure.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/api_config.dart';
 import '../../core/network/token_storage.dart';
@@ -135,11 +134,15 @@ class AuthService extends StateNotifier<UserModel?> {
   void completeOnboarding({
     required FarmerType farmerType,
     String? cropDetails,
+    String? farmScale,
   }) {
     final u = state;
     if (u == null) return;
-    state = u.copyWith(farmerType: farmerType, cropDetails: cropDetails);
-    // TODO: persist locally (shared_preferences) until API supports it
+    state = u.copyWith(
+      farmerType: farmerType,
+      cropDetails: cropDetails,
+      farmScale: farmScale,
+    );
   }
 
   // ─── HELPERS ──────────────────────────────────────────────

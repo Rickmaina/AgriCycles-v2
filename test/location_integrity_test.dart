@@ -55,7 +55,7 @@ void main() {
   testWidgets(
     'non-company users are blocked from the community pre-order creation flow',
     (tester) async {
-      final farmer = UserModel(
+      const farmer = UserModel(
         id: 'u-farmer',
         name: 'Farmer User',
         phone: '0712345678',
