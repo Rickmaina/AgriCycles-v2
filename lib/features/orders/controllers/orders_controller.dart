@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/enums.dart';
 import '../../../data/models/order_model.dart';
+import '../../../data/models/geo_location.dart';
 import '../../../data/services/order_service.dart';
 import '../../notifications/controllers/notification_controller.dart';
 import '../../../domain/order_state_machine.dart';
@@ -54,12 +55,20 @@ class OrdersController {
     required String sellerName,
     required double quantity,
     required double pricePerUnit,
-    required String pickupCounty,
-    required String pickupSubCounty,
-    required String pickupArea,
-    required String deliveryCounty,
-    required String deliverySubCounty,
-    required String deliveryArea,
+    GeoLocation? pickupLocation,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupSubCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupArea,
+    GeoLocation? deliveryLocation,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliveryCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliverySubCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliveryArea,
     String? deliveryNotes,
   }) =>
       _svc.createFromOffer(
@@ -72,9 +81,11 @@ class OrdersController {
         sellerName: sellerName,
         quantity: quantity,
         pricePerUnit: pricePerUnit,
+        pickupLocation: pickupLocation,
         pickupCounty: pickupCounty,
         pickupSubCounty: pickupSubCounty,
         pickupArea: pickupArea,
+        deliveryLocation: deliveryLocation,
         deliveryCounty: deliveryCounty,
         deliverySubCounty: deliverySubCounty,
         deliveryArea: deliveryArea,
@@ -85,18 +96,15 @@ class OrdersController {
 final ordersControllerProvider =
     Provider<OrdersController>((ref) => OrdersController(ref));
 
-// ── Derived providers ─────────────────────────────────────────────
-
-final buyingOrdersProvider =
-    Provider.family<List<OrderModel>, String>((ref, userId) =>
+final buyingOrdersProvider = Provider.family<List<OrderModel>, String>(
+    (ref, userId) =>
         ref.watch(ordersProvider).where((o) => o.buyerId == userId).toList());
 
-final sellingOrdersProvider =
-    Provider.family<List<OrderModel>, String>((ref, userId) =>
+final sellingOrdersProvider = Provider.family<List<OrderModel>, String>(
+    (ref, userId) =>
         ref.watch(ordersProvider).where((o) => o.sellerId == userId).toList());
 
-final orderByIdProvider =
-    Provider.family<OrderModel?, String>((ref, orderId) {
+final orderByIdProvider = Provider.family<OrderModel?, String>((ref, orderId) {
   for (final o in ref.watch(ordersProvider)) {
     if (o.id == orderId) return o;
   }

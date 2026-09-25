@@ -100,10 +100,12 @@ class AuthController {
   void completeOnboarding({
     required FarmerType farmerType,
     String? cropDetails,
+    String? farmScale,
   }) {
     _service.completeOnboarding(
       farmerType: farmerType,
       cropDetails: cropDetails,
+      farmScale: farmScale,
     );
   }
 

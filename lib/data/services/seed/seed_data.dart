@@ -3,8 +3,8 @@ import '../../models/user_model.dart';
 
 /// Seed users so the app is usable without a backend.
 /// Replace with an HTTP-backed repository in production.
-class MockData {
-  MockData._();
+class SeedData {
+  SeedData._();
 
   static final List<UserModel> users = [
     const UserModel(

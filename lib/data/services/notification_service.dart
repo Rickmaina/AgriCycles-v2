@@ -41,24 +41,20 @@ class NotificationService extends StateNotifier<List<NotificationModel>> {
   }
 
   List<NotificationModel> forUser(String userId) {
-    final list =
-        state.where((n) => n.recipientId == userId).toList();
+    final list = state.where((n) => n.recipientId == userId).toList();
     list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return list;
   }
 
-  int unreadCount(String userId) => state
-      .where((n) => n.recipientId == userId && !n.read)
-      .length;
+  int unreadCount(String userId) =>
+      state.where((n) => n.recipientId == userId && !n.read).length;
 
   void push(NotificationModel notification) {
     state = [notification, ...state];
   }
 
   void markRead(String id) {
-    state = state
-        .map((n) => n.id == id ? n.copyWith(read: true) : n)
-        .toList();
+    state = state.map((n) => n.id == id ? n.copyWith(read: true) : n).toList();
   }
 
   void markAllRead(String userId) {
@@ -87,8 +83,7 @@ final myNotificationsProvider =
   return list;
 });
 
-final myUnreadCountProvider =
-    Provider.family<int, String>((ref, userId) {
+final myUnreadCountProvider = Provider.family<int, String>((ref, userId) {
   return ref
       .watch(notificationProvider)
       .where((n) => n.recipientId == userId && !n.read)

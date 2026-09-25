@@ -47,8 +47,7 @@ class _RateOrderScreenState extends ConsumerState<RateOrderScreen> {
               const Text(
                 'How did it go?',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -67,9 +66,7 @@ class _RateOrderScreenState extends ConsumerState<RateOrderScreen> {
                     iconSize: 44,
                     icon: Icon(
                       filled ? Icons.star : Icons.star_border,
-                      color: filled
-                          ? AppColors.accent
-                          : AppColors.textMuted,
+                      color: filled ? AppColors.accent : AppColors.textMuted,
                     ),
                   );
                 }),

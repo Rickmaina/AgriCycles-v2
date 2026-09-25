@@ -6,8 +6,10 @@ import '../core/constants/app_routes.dart';
 import '../data/services/auth_service.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
+import '../features/help/help_screen.dart';
 import '../features/home/home_shell.dart';
 import '../features/onboarding/get_started_screen.dart';
+import '../features/onboarding/onboarding_complete_screen.dart';
 import 'route_guards.dart';
 
 /// Bridges Riverpod auth state to a Listenable go_router can refresh on.
@@ -42,6 +44,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.onboarding,
         builder: (_, __) => const GetStartedScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingComplete,
+        builder: (_, __) => const OnboardingCompleteScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.help,
+        builder: (_, __) => const HelpScreen(),
       ),
       GoRoute(
         path: AppRoutes.home,

@@ -16,8 +16,7 @@ class RaiseDisputeScreen extends ConsumerStatefulWidget {
   const RaiseDisputeScreen({super.key, required this.order});
 
   @override
-  ConsumerState<RaiseDisputeScreen> createState() =>
-      _RaiseDisputeScreenState();
+  ConsumerState<RaiseDisputeScreen> createState() => _RaiseDisputeScreenState();
 }
 
 class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
@@ -78,7 +77,6 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
             children: [
-              // Order summary
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -97,8 +95,7 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
                     Text(
                       'Order #${order.id.substring(3)}  •  ${order.quantity} ${order.unit}',
                       style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary),
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -112,7 +109,6 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
               const _Label('What went wrong?'),
               const SizedBox(height: 10),
               Wrap(
@@ -123,12 +119,9 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
                   return ChoiceChip(
                     label: Text(t.label),
                     selected: active,
-                    onSelected: (_) =>
-                        setState(() => _issueType = t),
+                    onSelected: (_) => setState(() => _issueType = t),
                     labelStyle: TextStyle(
-                      color: active
-                          ? Colors.white
-                          : AppColors.textPrimary,
+                      color: active ? Colors.white : AppColors.textPrimary,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
@@ -139,7 +132,6 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
                 }).toList(),
               ),
               const SizedBox(height: 24),
-
               const _Label('Describe the issue'),
               const SizedBox(height: 10),
               TextFormField(
@@ -148,21 +140,18 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
                 maxLength: 500,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(
-                  hintText:
-                      'What happened, when, and what outcome you expect.',
+                  hintText: 'What happened, when, and what outcome you expect.',
                 ),
                 validator: (v) => (v == null || v.trim().length < 10)
                     ? 'At least 10 characters'
                     : null,
               ),
               const SizedBox(height: 16),
-
               const _Label('Affected scope (optional)'),
               const SizedBox(height: 6),
               const Text(
                 'Leave blank for a full-order dispute.',
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
               const SizedBox(height: 12),
               Row(
@@ -171,18 +160,16 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
                     child: TextFormField(
                       controller: _affectedQty,
                       keyboardType:
-                          const TextInputType.numberWithOptions(
-                              decimal: true),
+                          const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d{0,2}')),
                       ],
-                      decoration: InputDecoration(
-                          labelText: 'Qty (${order.unit})'),
+                      decoration:
+                          InputDecoration(labelText: 'Qty (${order.unit})'),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return null;
-                        return Validators.positiveNumber(v,
-                            label: 'Quantity');
+                        return Validators.positiveNumber(v, label: 'Quantity');
                       },
                     ),
                   ),
@@ -191,8 +178,7 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
                     child: TextFormField(
                       controller: _affectedAmount,
                       keyboardType:
-                          const TextInputType.numberWithOptions(
-                              decimal: true),
+                          const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d{0,2}')),
@@ -203,15 +189,13 @@ class _RaiseDisputeScreenState extends ConsumerState<RaiseDisputeScreen> {
                       ),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return null;
-                        return Validators.positiveNumber(v,
-                            label: 'Amount');
+                        return Validators.positiveNumber(v, label: 'Amount');
                       },
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(

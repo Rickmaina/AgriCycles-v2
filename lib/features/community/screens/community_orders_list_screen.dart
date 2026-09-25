@@ -19,8 +19,7 @@ class CommunityOrdersListScreen extends ConsumerWidget {
       return const EmptyState(
         icon: Icons.groups_outlined,
         title: 'No open community orders',
-        subtitle:
-            'Buyers will publish aggregation requests here as they post.',
+        subtitle: 'Buyers will publish aggregation requests here as they post.',
       );
     }
 
@@ -44,8 +43,7 @@ class _PreOrderCard extends ConsumerWidget {
     final progress = preOrder.targetQuantity <= 0
         ? 0.0
         : (committed / preOrder.targetQuantity).clamp(0.0, 1.0);
-    final daysLeft =
-        preOrder.deadline.difference(DateTime.now()).inDays;
+    final daysLeft = preOrder.deadline.difference(DateTime.now()).inDays;
 
     return Material(
       color: AppColors.surface,
@@ -54,8 +52,7 @@ class _PreOrderCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) =>
-                CommunityOrderDetailScreen(preOrderId: preOrder.id),
+            builder: (_) => CommunityOrderDetailScreen(preOrderId: preOrder.id),
           ),
         ),
         child: Container(
@@ -77,8 +74,8 @@ class _PreOrderCard extends ConsumerWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 9, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
@@ -101,16 +98,13 @@ class _PreOrderCard extends ConsumerWidget {
                     fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 12),
-
-              // Progress bar
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: progress,
                   minHeight: 6,
                   backgroundColor: AppColors.surfaceAlt,
-                  valueColor: const AlwaysStoppedAnimation(
-                      AppColors.primary),
+                  valueColor: const AlwaysStoppedAnimation(AppColors.primary),
                 ),
               ),
               const SizedBox(height: 6),
@@ -146,8 +140,7 @@ class _PreOrderCard extends ConsumerWidget {
                       preOrder.deliveryBroadLocation,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary),
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ),
                 ],
@@ -165,13 +158,10 @@ class _PreOrderCard extends ConsumerWidget {
                   ),
                   const Spacer(),
                   Icon(
-                    daysLeft <= 3
-                        ? Icons.schedule
-                        : Icons.event_outlined,
+                    daysLeft <= 3 ? Icons.schedule : Icons.event_outlined,
                     size: 14,
-                    color: daysLeft <= 3
-                        ? AppColors.warning
-                        : AppColors.textMuted,
+                    color:
+                        daysLeft <= 3 ? AppColors.warning : AppColors.textMuted,
                   ),
                   const SizedBox(width: 4),
                   Text(

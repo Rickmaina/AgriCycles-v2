@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/enums.dart';
 import '../../../data/models/buy_request_model.dart';
+import '../../../data/models/geo_location.dart';
 import '../../../data/models/buy_request_offer_model.dart';
 import '../../../data/services/buy_request_service.dart';
 import '../../../domain/transport_estimator.dart';
@@ -12,8 +13,7 @@ class BuyRequestController {
 
   BuyRequestService get _svc => _ref.read(buyRequestProvider.notifier);
 
-  bool isCommunityScale(double quantity) =>
-      _svc.isCommunityScale(quantity);
+  bool isCommunityScale(double quantity) => _svc.isCommunityScale(quantity);
 
   BuyRequestModel postRequest({
     required String buyerId,
@@ -24,9 +24,13 @@ class BuyRequestController {
     required String unit,
     required double offeredPricePerUnit,
     String? description,
-    required String deliveryCounty,
-    required String deliverySubCounty,
-    required String deliveryArea,
+    GeoLocation? deliveryLocation,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliveryCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliverySubCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliveryArea,
     String? deliveryNotes,
   }) {
     final now = DateTime.now();
@@ -40,6 +44,7 @@ class BuyRequestController {
       unit: unit,
       offeredPricePerUnit: offeredPricePerUnit,
       description: description,
+      deliveryLocation: deliveryLocation,
       deliveryCounty: deliveryCounty,
       deliverySubCounty: deliverySubCounty,
       deliveryArea: deliveryArea,
@@ -59,16 +64,31 @@ class BuyRequestController {
     required String sellerName,
     required double pricePerUnit,
     required double quantity,
-    required String pickupCounty,
-    required String pickupSubCounty,
-    required String pickupArea,
+    GeoLocation? pickupLocation,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupSubCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupArea,
     String? message,
   }) {
-    final transport = TransportEstimator.costKes(
-      pickupCounty: pickupCounty,
-      deliveryCounty: request.deliveryCounty,
-      quantityTonnes: quantity,
-    );
+    double transport;
+    if (pickupLocation != null &&
+        request.deliveryLocation.hasCoordinates &&
+        pickupLocation.hasCoordinates) {
+      final d = TransportEstimator.distanceKmForLocations(
+          pickupLocation, request.deliveryLocation);
+      transport =
+          (TransportEstimator.baseFeeKes + TransportEstimator.perKmKes * d) *
+              (1 + (quantity / TransportEstimator.loadFactorDivisor));
+    } else {
+      transport = TransportEstimator.costKes(
+        pickupCounty: pickupCounty ?? pickupLocation?.county ?? '',
+        deliveryCounty: request.deliveryCounty,
+        quantityTonnes: quantity,
+      );
+    }
     final offer = BuyRequestOfferModel(
       id: 'bro${DateTime.now().millisecondsSinceEpoch}',
       buyRequestId: request.id,
@@ -77,6 +97,7 @@ class BuyRequestController {
       pricePerUnit: pricePerUnit,
       quantity: quantity,
       message: message,
+      pickupLocation: pickupLocation,
       pickupCounty: pickupCounty,
       pickupSubCounty: pickupSubCounty,
       pickupArea: pickupArea,
@@ -101,7 +122,9 @@ final buyRequestControllerProvider =
     Provider<BuyRequestController>((ref) => BuyRequestController(ref));
 
 final openBuyRequestsProvider = Provider<List<BuyRequestModel>>(
-  (ref) => ref.watch(buyRequestProvider).requests
+  (ref) => ref
+      .watch(buyRequestProvider)
+      .requests
       .where((r) => r.status == BuyRequestStatus.open)
       .toList(),
 );
@@ -123,8 +146,8 @@ final buyRequestByIdProvider =
   return null;
 });
 
-final buyRequestOffersProvider = Provider
-    .family<List<BuyRequestOfferModel>, String>((ref, requestId) {
+final buyRequestOffersProvider =
+    Provider.family<List<BuyRequestOfferModel>, String>((ref, requestId) {
   return ref
       .watch(buyRequestProvider)
       .offers

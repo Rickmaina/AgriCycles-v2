@@ -22,8 +22,7 @@ class DisputeController {
     double? affectedQuantity,
     double? affectedAmount,
   }) {
-    final role =
-        raisedById == order.buyerId ? 'buyer' : 'seller';
+    final role = raisedById == order.buyerId ? 'buyer' : 'seller';
     final now = DateTime.now();
     final dispute = DisputeModel(
       id: 'd${now.millisecondsSinceEpoch}',
@@ -41,12 +40,8 @@ class DisputeController {
     );
     _svc.raise(dispute);
 
-    // Move the order into the disputed branch state.
-    _ref
-        .read(ordersProvider.notifier)
-        .branchTo(order.id, OrderState.disputed);
+    _ref.read(ordersProvider.notifier).branchTo(order.id, OrderState.disputed);
 
-    // Notify both parties.
     final notify = _ref.read(notificationControllerProvider);
     notify.notifyDispute(
       recipientId: order.buyerId,
@@ -64,8 +59,7 @@ class DisputeController {
     return dispute;
   }
 
-  void markUnderReview(String disputeId) =>
-      _svc.markUnderReview(disputeId);
+  void markUnderReview(String disputeId) => _svc.markUnderReview(disputeId);
 
   void resolve({
     required String disputeId,
@@ -84,8 +78,6 @@ class DisputeController {
 final disputeControllerProvider =
     Provider<DisputeController>((ref) => DisputeController(ref));
 
-// ── Derived providers ─────────────────────────────────────────────
-
 final openDisputesProvider = Provider<List<DisputeModel>>(
   (ref) => ref
       .watch(disputeProvider)
@@ -93,16 +85,12 @@ final openDisputesProvider = Provider<List<DisputeModel>>(
       .toList(),
 );
 
-final disputesForOrderProvider =
-    Provider.family<List<DisputeModel>, String>(
-  (ref, orderId) => ref
-      .watch(disputeProvider)
-      .where((d) => d.orderId == orderId)
-      .toList(),
+final disputesForOrderProvider = Provider.family<List<DisputeModel>, String>(
+  (ref, orderId) =>
+      ref.watch(disputeProvider).where((d) => d.orderId == orderId).toList(),
 );
 
-final disputeByIdProvider =
-    Provider.family<DisputeModel?, String>((ref, id) {
+final disputeByIdProvider = Provider.family<DisputeModel?, String>((ref, id) {
   for (final d in ref.watch(disputeProvider)) {
     if (d.id == id) return d;
   }

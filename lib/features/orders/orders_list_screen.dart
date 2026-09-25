@@ -15,8 +15,7 @@ class OrdersListScreen extends ConsumerStatefulWidget {
   const OrdersListScreen({super.key});
 
   @override
-  ConsumerState<OrdersListScreen> createState() =>
-      _OrdersListScreenState();
+  ConsumerState<OrdersListScreen> createState() => _OrdersListScreenState();
 }
 
 class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
@@ -47,9 +46,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
           child: orders.isEmpty
               ? EmptyState(
                   icon: Icons.receipt_long_outlined,
-                  title: _tab == 0
-                      ? 'No purchase orders yet'
-                      : 'No sales yet',
+                  title: _tab == 0 ? 'No purchase orders yet' : 'No sales yet',
                   subtitle: _tab == 0
                       ? 'Browse the market and make an offer to get started.'
                       : 'Your listings will show orders here once buyers engage.',
@@ -57,8 +54,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                   itemCount: orders.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(height: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (_, i) => _OrderCard(
                     order: orders[i],
                     isBuying: _tab == 0,
@@ -130,8 +126,7 @@ class _OrderCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary),
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ),
                   Text(
@@ -153,8 +148,7 @@ class _OrderCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  const Icon(Icons.chevron_right,
-                      color: AppColors.textMuted),
+                  const Icon(Icons.chevron_right, color: AppColors.textMuted),
                 ],
               ),
             ],

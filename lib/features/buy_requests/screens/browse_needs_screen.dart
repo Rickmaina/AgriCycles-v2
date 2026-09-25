@@ -19,8 +19,7 @@ class BrowseNeedsScreen extends ConsumerWidget {
       return const EmptyState(
         icon: Icons.campaign_outlined,
         title: 'No open buy requests',
-        subtitle:
-            'When buyers post what they need, they will appear here.',
+        subtitle: 'When buyers post what they need, they will appear here.',
       );
     }
 
@@ -46,8 +45,7 @@ class _NeedCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) =>
-                BuyRequestDetailScreen(requestId: request.id),
+            builder: (_) => BuyRequestDetailScreen(requestId: request.id),
           ),
         ),
         child: Container(
@@ -69,8 +67,8 @@ class _NeedCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 9, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.info.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
@@ -103,8 +101,7 @@ class _NeedCard extends StatelessWidget {
                       request.deliveryBroadLocation,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary),
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ),
                   Text(
@@ -126,8 +123,7 @@ class _NeedCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  const Icon(Icons.chevron_right,
-                      color: AppColors.textMuted),
+                  const Icon(Icons.chevron_right, color: AppColors.textMuted),
                 ],
               ),
             ],

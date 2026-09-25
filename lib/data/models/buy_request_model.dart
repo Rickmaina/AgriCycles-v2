@@ -1,4 +1,5 @@
 import '../../core/constants/enums.dart';
+import 'geo_location.dart';
 
 /// A demand-first request: a buyer states what they need and what they
 /// will pay. Sellers respond with individual offers. If the request
@@ -15,16 +16,14 @@ class BuyRequestModel {
   final double offeredPricePerUnit;
   final String? description;
 
-  final String deliveryCounty;
-  final String deliverySubCounty;
-  final String deliveryArea;
+  final GeoLocation deliveryLocation;
   final String? deliveryNotes;
 
   final BuyRequestStatus status;
   final DateTime createdAt;
   final DateTime? expiresAt;
 
-  const BuyRequestModel({
+  BuyRequestModel({
     required this.id,
     required this.buyerId,
     required this.buyerName,
@@ -34,19 +33,31 @@ class BuyRequestModel {
     required this.unit,
     required this.offeredPricePerUnit,
     this.description,
-    required this.deliveryCounty,
-    required this.deliverySubCounty,
-    required this.deliveryArea,
+    GeoLocation? deliveryLocation,
+    String? deliveryCounty,
+    String? deliverySubCounty,
+    String? deliveryArea,
     this.deliveryNotes,
     this.status = BuyRequestStatus.open,
     required this.createdAt,
     this.expiresAt,
-  });
+  }) : deliveryLocation = deliveryLocation ??
+            GeoLocation(
+              county: deliveryCounty ?? '',
+              subCounty: deliverySubCounty ?? '',
+              area: deliveryArea ?? '',
+              lat: null,
+              lng: null,
+              source: LocationSource.selfReported,
+            );
 
   double get totalBudget => quantity * offeredPricePerUnit;
 
-  String get deliveryBroadLocation =>
-      '$deliveryArea, $deliverySubCounty';
+  String get deliveryBroadLocation => deliveryLocation.broadLocation;
+
+  String get deliveryCounty => deliveryLocation.county;
+  String get deliverySubCounty => deliveryLocation.subCounty;
+  String get deliveryArea => deliveryLocation.area;
 
   BuyRequestModel copyWith({BuyRequestStatus? status}) => BuyRequestModel(
         id: id,
@@ -58,9 +69,7 @@ class BuyRequestModel {
         unit: unit,
         offeredPricePerUnit: offeredPricePerUnit,
         description: description,
-        deliveryCounty: deliveryCounty,
-        deliverySubCounty: deliverySubCounty,
-        deliveryArea: deliveryArea,
+        deliveryLocation: deliveryLocation,
         deliveryNotes: deliveryNotes,
         status: status ?? this.status,
         createdAt: createdAt,

@@ -1,8 +1,9 @@
 import '../../../core/constants/enums.dart';
 import '../../models/listing_model.dart';
+import '../../models/geo_location.dart';
 
-class MockListings {
-  MockListings._();
+class SeedListings {
+  SeedListings._();
 
   static const List<String> categories = [
     'All',
@@ -12,7 +13,7 @@ class MockListings {
   ];
 
   static final List<ListingModel> all = [
-    const ListingModel(
+    ListingModel(
       id: 'l1',
       sellerId: 'u1',
       sellerName: 'Grace Wanjiku',
@@ -23,12 +24,17 @@ class MockListings {
       pricePerUnit: 4500,
       description:
           'Dry maize stalks from last season. Good for fodder or composting.',
-      county: 'Kiambu',
-      subCounty: 'Ruiru',
-      area: 'Kamakis',
+      location: GeoLocation(
+        county: 'Kiambu',
+        subCounty: 'Ruiru',
+        area: 'Kamakis',
+        lat: -1.1500,
+        lng: 36.9000,
+        source: LocationSource.deviceCaptured,
+      ),
       sellerVerification: VerificationStatus.approved,
     ),
-    const ListingModel(
+    ListingModel(
       id: 'l2',
       sellerId: 'u5',
       sellerName: 'Joseph Mwangi',
@@ -39,10 +45,10 @@ class MockListings {
       pricePerUnit: 2000,
       description: 'Well-rotted manure, ready for fields.',
       county: 'Kakamega',
-      subCounty: 'Mumias',
-      area: 'Bukhungu',
+      subCounty: 'Mumias West',
+      area: 'Mumias Central',
     ),
-    const ListingModel(
+    ListingModel(
       id: 'l3',
       sellerId: 'u6',
       sellerName: 'Achieng Farms',
@@ -52,12 +58,17 @@ class MockListings {
       unit: 'tonnes',
       pricePerUnit: 1500,
       description: 'Fresh from mill. Great for animal feed or biomass.',
-      county: 'Kisumu',
-      subCounty: 'Ahero',
-      area: 'Kano',
+      location: GeoLocation(
+        county: 'Kisumu',
+        subCounty: 'Nyando',
+        area: 'Ahero',
+        lat: -0.1521,
+        lng: 34.7625,
+        source: LocationSource.adminVerified,
+      ),
       sellerVerification: VerificationStatus.approved,
     ),
-    const ListingModel(
+    ListingModel(
       id: 'l4',
       sellerId: 'u7',
       sellerName: 'Mary Njeri',
@@ -67,11 +78,16 @@ class MockListings {
       unit: 'kg',
       pricePerUnit: 12,
       description: 'Chopped and ready for livestock feed.',
-      county: 'Kiambu',
-      subCounty: 'Gatundu',
-      area: 'Kiganjo',
+      location: GeoLocation(
+        county: 'Kiambu',
+        subCounty: 'Gatundu North',
+        area: 'Gituamba',
+        lat: null,
+        lng: null,
+        source: LocationSource.selfReported,
+      ),
     ),
-    const ListingModel(
+    ListingModel(
       id: 'l5',
       sellerId: 'u8',
       sellerName: 'Kakamega Poultry',
@@ -81,12 +97,17 @@ class MockListings {
       unit: 'tonnes',
       pricePerUnit: 1800,
       description: 'Dry litter, high nitrogen. Ideal for maize.',
-      county: 'Kakamega',
-      subCounty: 'Lurambi',
-      area: 'Shieywe',
+      location: GeoLocation(
+        county: 'Kakamega',
+        subCounty: 'Lurambi',
+        area: 'Shieywe',
+        lat: -0.2820,
+        lng: 34.7519,
+        source: LocationSource.adminVerified,
+      ),
       sellerVerification: VerificationStatus.approved,
     ),
-    const ListingModel(
+    ListingModel(
       id: 'l6',
       sellerId: 'u9',
       sellerName: 'Peter Odhiambo',
@@ -96,9 +117,14 @@ class MockListings {
       unit: 'tonnes',
       pricePerUnit: 3000,
       description: 'Clean husks from rice mill. Good for bedding.',
-      county: 'Kisumu',
-      subCounty: 'Nyando',
-      area: 'Awasi',
+      location: GeoLocation(
+        county: 'Kisumu',
+        subCounty: 'Nyando',
+        area: 'Awasi/Onjiko',
+        lat: -0.0910,
+        lng: 34.7110,
+        source: LocationSource.deviceCaptured,
+      ),
     ),
   ];
 }

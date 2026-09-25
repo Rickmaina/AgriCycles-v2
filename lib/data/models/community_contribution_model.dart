@@ -1,4 +1,5 @@
 import '../../core/constants/enums.dart';
+import 'geo_location.dart';
 
 /// One farmer's commitment to a community pre-order. The buyer accepts
 /// each contribution individually — committed quantity can be rejected
@@ -10,17 +11,15 @@ class CommunityContributionModel {
   final String farmerName;
 
   final double committedQuantity;
-  final double? acceptedQuantity;    // set after buyer review
-  final double pricePerUnit;         // locked at commit time
+  final double? acceptedQuantity; // set after buyer review
+  final double pricePerUnit; // locked at commit time
 
-  final String pickupCounty;
-  final String pickupSubCounty;
-  final String pickupArea;
+  final GeoLocation pickupLocation;
 
   final ContributionStatus status;
   final DateTime createdAt;
 
-  const CommunityContributionModel({
+  CommunityContributionModel({
     required this.id,
     required this.preOrderId,
     required this.farmerId,
@@ -28,19 +27,27 @@ class CommunityContributionModel {
     required this.committedQuantity,
     this.acceptedQuantity,
     required this.pricePerUnit,
-    required this.pickupCounty,
-    required this.pickupSubCounty,
-    required this.pickupArea,
+    GeoLocation? pickupLocation,
+    String? pickupCounty,
+    String? pickupSubCounty,
+    String? pickupArea,
     this.status = ContributionStatus.committed,
     required this.createdAt,
-  });
+  }) : pickupLocation = pickupLocation ??
+            GeoLocation(
+              county: pickupCounty ?? '',
+              subCounty: pickupSubCounty ?? '',
+              area: pickupArea ?? '',
+              lat: null,
+              lng: null,
+              source: LocationSource.selfReported,
+            );
 
-  double get effectiveQuantity =>
-      acceptedQuantity ?? committedQuantity;
+  double get effectiveQuantity => acceptedQuantity ?? committedQuantity;
 
   double get subtotal => effectiveQuantity * pricePerUnit;
 
-  String get pickupBroadLocation => '$pickupArea, $pickupSubCounty';
+  String get pickupBroadLocation => pickupLocation.broadLocation;
 
   CommunityContributionModel copyWith({
     ContributionStatus? status,
@@ -54,9 +61,7 @@ class CommunityContributionModel {
         committedQuantity: committedQuantity,
         acceptedQuantity: acceptedQuantity ?? this.acceptedQuantity,
         pricePerUnit: pricePerUnit,
-        pickupCounty: pickupCounty,
-        pickupSubCounty: pickupSubCounty,
-        pickupArea: pickupArea,
+        pickupLocation: pickupLocation,
         status: status ?? this.status,
         createdAt: createdAt,
       );

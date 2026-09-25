@@ -8,8 +8,7 @@ class NotificationController {
   NotificationController(this._ref);
   final Ref _ref;
 
-  NotificationService get _svc =>
-      _ref.read(notificationProvider.notifier);
+  NotificationService get _svc => _ref.read(notificationProvider.notifier);
 
   void notifyOrder({
     required String recipientId,
@@ -69,6 +68,16 @@ class NotificationController {
         createdAt: DateTime.now(),
       ),
     );
+  }
+
+  Future<void> registerPushToken({
+    required String userId,
+    required String token,
+  }) async {
+    // No notification SDK is currently installed in this repo, so this remains a
+    // local-only placeholder until the platform choice is confirmed.
+    // The app keeps the userId + token in memory only for now.
+    if (userId.isEmpty || token.isEmpty) return;
   }
 
   void markRead(String id) => _svc.markRead(id);

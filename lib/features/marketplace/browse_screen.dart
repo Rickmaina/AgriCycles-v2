@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../data/models/listing_model.dart';
-import '../../data/services/mock/mock_listings.dart';
+import '../../data/services/seed/seed_listings.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/listing_card.dart';
 import 'controllers/marketplace_controller.dart';
@@ -49,8 +49,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
           child: Text(
             '${results.length} listing${results.length == 1 ? '' : 's'}',
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
         ),
         Expanded(
@@ -62,8 +61,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                 )
               : GridView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
@@ -102,10 +100,10 @@ class _CategoryChips extends StatelessWidget {
         height: 40,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
-          itemCount: MockListings.categories.length,
+          itemCount: SeedListings.categories.length,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
           itemBuilder: (_, i) {
-            final c = MockListings.categories[i];
+            final c = SeedListings.categories[i];
             final active = c == selected;
             return ChoiceChip(
               label: Text(c),

@@ -83,20 +83,24 @@ class VerificationService
   }
 
   void approve(String id, String adminName) {
-    _update(id, (r) => r.copyWith(
-          status: VerificationStatus.approved,
-          reviewedAt: DateTime.now(),
-          reviewedBy: adminName,
-        ));
+    _update(
+        id,
+        (r) => r.copyWith(
+              status: VerificationStatus.approved,
+              reviewedAt: DateTime.now(),
+              reviewedBy: adminName,
+            ));
   }
 
   void reject(String id, String adminName, String reason) {
-    _update(id, (r) => r.copyWith(
-          status: VerificationStatus.rejected,
-          reviewedAt: DateTime.now(),
-          reviewedBy: adminName,
-          rejectionReason: reason,
-        ));
+    _update(
+        id,
+        (r) => r.copyWith(
+              status: VerificationStatus.rejected,
+              reviewedAt: DateTime.now(),
+              reviewedBy: adminName,
+              rejectionReason: reason,
+            ));
   }
 
   void _update(

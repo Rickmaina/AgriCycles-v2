@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/enums.dart';
-import '../../core/constants/kenya_locations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/verification_request_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../domain/validators.dart';
+import '../../shared/widgets/location_picker.dart';
 import '../admin/controllers/admin_controller.dart';
 
 class RegisterVehicleScreen extends ConsumerStatefulWidget {
@@ -25,7 +25,9 @@ class _RegisterVehicleScreenState
   final _plate = TextEditingController();
   final _makeModel = TextEditingController();
   final _capacity = TextEditingController();
-  String? _county;
+
+  LocationSelection? _location;
+  String? _locationError;
   bool _submitted = false;
 
   @override
@@ -38,7 +40,17 @@ class _RegisterVehicleScreenState
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final formOk = _formKey.currentState!.validate();
+    final locationOk = _location != null &&
+        _location!.county.isNotEmpty &&
+        _location!.subCounty.isNotEmpty;
+    if (!formOk || !locationOk) {
+      if (!locationOk) {
+        setState(() => _locationError =
+            'Please select your operating county and sub-county.');
+      }
+      return;
+    }
 
     final user = ref.read(authProvider);
     final applicant = user?.name ?? 'Transport partner';
@@ -53,7 +65,7 @@ class _RegisterVehicleScreenState
       plateNumber: plate,
       extraInfo:
           '${_makeModel.text.trim()}, ${_capacity.text.trim()}t capacity',
-      county: _county!,
+      county: _location!.county,
       submittedAt: DateTime.now(),
     );
 
@@ -166,18 +178,32 @@ class _RegisterVehicleScreenState
                   validator: (v) =>
                       Validators.positiveNumber(v, label: 'Capacity'),
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: _county,
-                  decoration: const InputDecoration(
-                      labelText: 'Operating county'),
-                  items: KenyaLocations.counties
-                      .map((c) =>
-                          DropdownMenuItem(value: c, child: Text(c)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _county = v),
-                  validator: Validators.county,
+                const SizedBox(height: 16),
+                const Text(
+                  'Operating location',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
+                const SizedBox(height: 10),
+                LocationPicker(
+                  initial: _location,
+                  onChanged: (sel) => setState(() {
+                    _location = sel;
+                    _locationError = null;
+                  }),
+                  onValidationError: (msg) =>
+                      setState(() => _locationError = msg),
+                ),
+                if (_locationError != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    _locationError!,
+                    style: const TextStyle(
+                        color: AppColors.danger, fontSize: 12),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 const _WarningNote(),
                 const SizedBox(height: 24),

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/constants/enums.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/role_theme.dart';
 import '../../core/utils/extensions.dart';
 import '../../data/services/auth_service.dart';
-import '../../shared/widgets/base_card.dart';
+import '../../data/services/marketplace_service.dart';
+import '../buy_requests/screens/post_need_screen.dart';
+import '../community/screens/community_orders_list_screen.dart';
+import '../marketplace/create_listing_screen.dart';
+import 'controllers/shell_tab_controller.dart';
+import '../../shared/widgets/hero_action_card.dart';
+import '../../shared/widgets/section_header.dart';
 
 class FarmerDashboard extends ConsumerWidget {
   const FarmerDashboard({super.key});
@@ -15,120 +20,159 @@ class FarmerDashboard extends ConsumerWidget {
     final user = ref.watch(authProvider);
     if (user == null) return const SizedBox.shrink();
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _ProfileSummary(
-          name: user.name,
-          subtitle:
-              '${user.farmerType?.label ?? "Farmer"} • ${user.area ?? ""}, ${user.county ?? ""}',
-        ),
-        const SizedBox(height: 16),
-        const _QuickStats(),
-        const SizedBox(height: 20),
-        const _SectionHeader(title: 'Trade'),
-        const SizedBox(height: 10),
-        const _TradeActions(),
-        const SizedBox(height: 20),
-        const _SectionHeader(title: 'Community'),
-        const SizedBox(height: 10),
-        const _CommunityActions(),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-}
+    const theme = RoleTheme.farmer;
+    final listings = ref.watch(marketplaceProvider).listings;
+    final myListings = listings.where((l) => l.sellerId == user.id).toList();
 
-class _ProfileSummary extends StatelessWidget {
-  final String name;
-  final String subtitle;
-
-  const _ProfileSummary({required this.name, required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    return BaseCard(
-      child: Row(
+    return Container(
+      color: theme.background,
+      child: ListView(
+        padding: EdgeInsets.all(theme.cardPadding),
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-            child: Text(
-              name.initials,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+          HeroActionCard(
+            theme: theme,
+            icon: Icons.agriculture_outlined,
+            headline: _heroHeadline(myListings.length),
+            subline: _heroSubline(myListings.length),
+            actionLabel: 'Open market',
+            onAction: () => ref.read(shellTabProvider.notifier).goTo(1),
+          ),
+          SizedBox(height: theme.sectionSpacing),
+          _StatGrid(theme: theme, myListings: myListings.length),
+          SizedBox(height: theme.sectionSpacing),
+          const SectionHeader(
+            theme: theme,
+            icon: Icons.storefront_outlined,
+            title: 'Trade',
+          ),
+          _ActionCard(
+            theme: theme,
+            actions: [
+              _ActionData(
+                icon: Icons.add_box_outlined,
+                title: 'Sell a resource',
+                subtitle: 'List crop waste, manure, feed',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreateListingScreen(),
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700),
+              _ActionData(
+                icon: Icons.search,
+                title: 'Browse listings',
+                subtitle: 'See what buyers want nearby',
+                onTap: () => ref.read(shellTabProvider.notifier).goTo(1),
+              ),
+              _ActionData(
+                icon: Icons.campaign_outlined,
+                title: 'Post a need',
+                subtitle: 'Buy-first: state what you need',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const PostNeedScreen(),
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          SizedBox(height: theme.sectionSpacing),
+          const SectionHeader(
+            theme: theme,
+            icon: Icons.groups_outlined,
+            title: 'Community',
+          ),
+          _ActionCard(
+            theme: theme,
+            actions: [
+              _ActionData(
+                icon: Icons.groups_outlined,
+                title: 'Join a community order',
+                subtitle: 'Pool resources with other farmers',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CommunityOrdersListScreen(),
+                  ),
+                ),
+              ),
+              _ActionData(
+                icon: Icons.map_outlined,
+                title: 'Route & pickup',
+                subtitle: 'Admin-managed logistics',
+                onTap: () => context.showSnack(
+                    'Pickup routing is managed from the admin queue.'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
+
+  String _heroHeadline(int myListings) {
+    if (myListings == 0) return 'Start selling today';
+    return 'Keep the momentum going';
+  }
+
+  String _heroSubline(int myListings) {
+    if (myListings == 0) {
+      return 'Post your first listing and reach buyers across the county.';
+    }
+    return 'You have $myListings active listing${myListings == 1 ? "" : "s"}. Check new offers on the market.';
+  }
 }
 
-class _QuickStats extends StatelessWidget {
-  const _QuickStats();
+class _StatGrid extends StatelessWidget {
+  final RoleTheme theme;
+  final int myListings;
+
+  const _StatGrid({required this.theme, required this.myListings});
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
         Row(
           children: [
             Expanded(
-              child: _StatCard(
-                icon: Icons.storefront,
+              child: _Stat(
+                theme: theme,
+                icon: Icons.storefront_outlined,
                 label: 'My listings',
-                value: '3',
+                value: '$myListings',
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
-              child: _StatCard(
-                icon: Icons.receipt_long,
+              child: _Stat(
+                theme: theme,
+                icon: Icons.receipt_long_outlined,
                 label: 'Open orders',
                 value: '1',
               ),
             ),
           ],
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
-              child: _StatCard(
+              child: _Stat(
+                theme: theme,
                 icon: Icons.campaign_outlined,
                 label: 'Buy requests',
-                value: '5 nearby',
+                value: '5',
+                valueTone: theme.accent,
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
-              child: _StatCard(
+              child: _Stat(
+                theme: theme,
                 icon: Icons.people_alt_outlined,
                 label: 'Community',
-                value: '2 active',
+                value: '2',
               ),
             ),
           ],
@@ -138,39 +182,50 @@ class _QuickStats extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _Stat extends StatelessWidget {
+  final RoleTheme theme;
   final IconData icon;
   final String label;
   final String value;
+  final Color? valueTone;
 
-  const _StatCard({
+  const _Stat({
+    required this.theme,
     required this.icon,
     required this.label,
     required this.value,
+    this.valueTone,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BaseCard(
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.surface,
+        borderRadius: BorderRadius.circular(theme.cardRadius),
+        border: Border.all(color: theme.border),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.primary),
+          Icon(icon, size: 20, color: theme.textMuted),
           const SizedBox(height: 10),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: valueTone ?? theme.textPrimary,
+              height: 1.1,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: theme.textSecondary,
             ),
           ),
         ],
@@ -179,126 +234,94 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _TradeActions extends StatelessWidget {
-  const _TradeActions();
+class _ActionCard extends StatelessWidget {
+  final RoleTheme theme;
+  final List<_ActionData> actions;
+
+  const _ActionCard({required this.theme, required this.actions});
 
   @override
   Widget build(BuildContext context) {
-    return const BaseCard(
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.surface,
+        borderRadius: BorderRadius.circular(theme.cardRadius),
+        border: Border.all(color: theme.border),
+      ),
       child: Column(
         children: [
-          _ActionRow(
-            icon: Icons.add_box_outlined,
-            title: 'Sell a resource',
-            subtitle: 'List crop waste, manure, feed',
-          ),
-          Divider(height: 20, color: AppColors.border),
-          _ActionRow(
-            icon: Icons.search,
-            title: 'Browse listings',
-            subtitle: 'See what buyers want nearby',
-          ),
-          Divider(height: 20, color: AppColors.border),
-          _ActionRow(
-            icon: Icons.campaign_outlined,
-            title: 'Post a need',
-            subtitle: 'Buy-first: state what you need',
-          ),
+          for (var i = 0; i < actions.length; i++) ...[
+            _ActionRow(theme: theme, data: actions[i]),
+            if (i < actions.length - 1) Divider(height: 1, color: theme.border),
+          ],
         ],
       ),
     );
   }
 }
 
-class _CommunityActions extends StatelessWidget {
-  const _CommunityActions();
-
-  @override
-  Widget build(BuildContext context) {
-    return const BaseCard(
-      child: Column(
-        children: [
-          _ActionRow(
-            icon: Icons.groups_outlined,
-            title: 'Join a community order',
-            subtitle: 'Pool resources with other farmers',
-          ),
-          Divider(height: 20, color: AppColors.border),
-          _ActionRow(
-            icon: Icons.map_outlined,
-            title: 'Route & pickup',
-            subtitle: 'Admin-managed logistics',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionRow extends StatelessWidget {
+class _ActionData {
   final IconData icon;
   final String title;
   final String subtitle;
-
-  const _ActionRow({
+  final VoidCallback? onTap;
+  const _ActionData({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceAlt,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Icon(Icons.chevron_right, color: AppColors.textMuted),
-      ],
-    );
-  }
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
+class _ActionRow extends StatelessWidget {
+  final RoleTheme theme;
+  final _ActionData data;
+
+  const _ActionRow({required this.theme, required this.data});
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
+    return InkWell(
+      onTap: data.onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                color: theme.primaryMuted,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Icon(data.icon, color: theme.primary, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    data.subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, size: 20, color: theme.textMuted),
+          ],
+        ),
       ),
     );
   }

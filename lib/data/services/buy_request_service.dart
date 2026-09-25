@@ -3,6 +3,9 @@ import '../../core/constants/enums.dart';
 
 import '../models/buy_request_model.dart';
 import '../models/buy_request_offer_model.dart';
+import '../models/listing_model.dart';
+import 'marketplace_service.dart';
+import '../../domain/landed_cost_calculator.dart';
 
 /// Community-order threshold: requests at or above this quantity are
 /// routed to the community pre-order flow (Section 16.2). Single
@@ -27,8 +30,10 @@ class BuyRequestState {
 }
 
 class BuyRequestService extends StateNotifier<BuyRequestState> {
-  BuyRequestService()
+  BuyRequestService(this._ref)
       : super(const BuyRequestState(requests: [], offers: []));
+
+  final Ref _ref;
 
   /// True when the request should be handled as a community pre-order
   /// rather than a single-seller broadcast.
@@ -49,9 +54,8 @@ class BuyRequestService extends StateNotifier<BuyRequestState> {
     );
   }
 
-  List<BuyRequestModel> openRequests() => state.requests
-      .where((r) => r.status == BuyRequestStatus.open)
-      .toList();
+  List<BuyRequestModel> openRequests() =>
+      state.requests.where((r) => r.status == BuyRequestStatus.open).toList();
 
   List<BuyRequestModel> byBuyer(String buyerId) =>
       state.requests.where((r) => r.buyerId == buyerId).toList();
@@ -65,6 +69,33 @@ class BuyRequestService extends StateNotifier<BuyRequestState> {
 
   void submitOffer(BuyRequestOfferModel offer) {
     state = state.copyWith(offers: [offer, ...state.offers]);
+  }
+
+  /// Suggest open listings for a buy request, ranked by landed cost
+  /// ascending. Uses the buy request's delivery location as reference.
+  List<ListingModel> suggestedSellers(String buyRequestId) {
+    final req = requestById(buyRequestId);
+    if (req == null) return [];
+
+    final marketplace = _ref.read(marketplaceProvider).listings;
+    final candidates =
+        marketplace.where((l) => l.category == req.category).toList();
+
+    double landedFor(ListingModel l) {
+      final estTransport = estimateTransportKesForOrder(
+        pickup: l.location,
+        delivery: req.deliveryLocation,
+        quantity: req.quantity,
+      );
+      return landedCostPerUnit(
+        pricePerUnit: l.pricePerUnit,
+        quantity: l.quantity,
+        estimatedTransportCost: estTransport,
+      );
+    }
+
+    candidates.sort((a, b) => landedFor(a).compareTo(landedFor(b)));
+    return candidates;
   }
 
   List<BuyRequestOfferModel> offersFor(String requestId) =>
@@ -84,5 +115,5 @@ class BuyRequestService extends StateNotifier<BuyRequestState> {
 
 final buyRequestProvider =
     StateNotifierProvider<BuyRequestService, BuyRequestState>(
-  (ref) => BuyRequestService(),
+  (ref) => BuyRequestService(ref),
 );

@@ -1,4 +1,5 @@
 import '../../core/constants/enums.dart';
+import 'geo_location.dart';
 
 /// A seller's response to a buy request. Includes the seller's asking
 /// price and their own pickup point + estimated transport cost so the
@@ -10,19 +11,17 @@ class BuyRequestOfferModel {
   final String sellerName;
 
   final double pricePerUnit;
-  final double quantity;       // how much of the request this seller can supply
+  final double quantity; // how much of the request this seller can supply
   final String? message;
 
-  final String pickupCounty;
-  final String pickupSubCounty;
-  final String pickupArea;
+  final GeoLocation pickupLocation;
 
   final double estimatedTransportCost;
 
   final BuyRequestOfferStatus status;
   final DateTime createdAt;
 
-  const BuyRequestOfferModel({
+  BuyRequestOfferModel({
     required this.id,
     required this.buyRequestId,
     required this.sellerId,
@@ -30,13 +29,22 @@ class BuyRequestOfferModel {
     required this.pricePerUnit,
     required this.quantity,
     this.message,
-    required this.pickupCounty,
-    required this.pickupSubCounty,
-    required this.pickupArea,
+    GeoLocation? pickupLocation,
+    String? pickupCounty,
+    String? pickupSubCounty,
+    String? pickupArea,
     required this.estimatedTransportCost,
     this.status = BuyRequestOfferStatus.pending,
     required this.createdAt,
-  });
+  }) : pickupLocation = pickupLocation ??
+            GeoLocation(
+              county: pickupCounty ?? '',
+              subCounty: pickupSubCounty ?? '',
+              area: pickupArea ?? '',
+              lat: null,
+              lng: null,
+              source: LocationSource.selfReported,
+            );
 
   /// Cost of goods alone.
   double get subtotal => pricePerUnit * quantity;
@@ -44,7 +52,7 @@ class BuyRequestOfferModel {
   /// Total the buyer pays: goods + transport.
   double get landedCost => subtotal + estimatedTransportCost;
 
-  String get pickupBroadLocation => '$pickupArea, $pickupSubCounty';
+  String get pickupBroadLocation => pickupLocation.broadLocation;
 
   BuyRequestOfferModel copyWith({BuyRequestOfferStatus? status}) =>
       BuyRequestOfferModel(
@@ -55,9 +63,7 @@ class BuyRequestOfferModel {
         pricePerUnit: pricePerUnit,
         quantity: quantity,
         message: message,
-        pickupCounty: pickupCounty,
-        pickupSubCounty: pickupSubCounty,
-        pickupArea: pickupArea,
+        pickupLocation: pickupLocation,
         estimatedTransportCost: estimatedTransportCost,
         status: status ?? this.status,
         createdAt: createdAt,

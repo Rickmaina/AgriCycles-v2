@@ -1,4 +1,6 @@
+# ─────────────────────────────────────────────────────────────
 # Flutter / Dart
+# ─────────────────────────────────────────────────────────────
 .dart_tool/
 .packages
 .pub-cache/
@@ -7,33 +9,80 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 
-# Generated files
+# Generated code
 *.g.dart
 *.freezed.dart
 *.mocks.dart
 .generated/
 
+# ─────────────────────────────────────────────────────────────
 # IDE
+# ─────────────────────────────────────────────────────────────
 .idea/
 .vscode/
 *.iml
 *.ipr
 *.iws
+*.sublime-project
+*.sublime-workspace
 
+# ─────────────────────────────────────────────────────────────
 # OS
+# ─────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 *.swp
 
-# Secrets
+# ─────────────────────────────────────────────────────────────
+# Secrets & local config
+# ─────────────────────────────────────────────────────────────
 .env
 .env.*
+!.env.example
 *.pem
 *.key
+*.p12
+*.jks
 secrets/
+config.local.*
+google-services.json
+GoogleService-Info.plist
 
-# Coverage
+# ─────────────────────────────────────────────────────────────
+# Platform build artifacts
+# ─────────────────────────────────────────────────────────────
+android/.gradle/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+macos/Pods/
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
+
+# ─────────────────────────────────────────────────────────────
+# Coverage & test output
+# ─────────────────────────────────────────────────────────────
 coverage/
+test/.test_coverage.dart
+*.lcov
 
+# ─────────────────────────────────────────────────────────────
 # Logs
+# ─────────────────────────────────────────────────────────────
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─────────────────────────────────────────────────────────────
+# Temp
+# ─────────────────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp

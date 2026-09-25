@@ -44,12 +44,11 @@ class _VerificationQueueScreenState
             options: _filters,
             selectedIndex: _filter == null
                 ? 0
-                : _filters.indexOf(
-                    _filter == VerificationType.vet
-                        ? 'Vets'
-                        : _filter == VerificationType.company
-                            ? 'Companies'
-                            : 'Vehicles'),
+                : _filters.indexOf(_filter == VerificationType.vet
+                    ? 'Vets'
+                    : _filter == VerificationType.company
+                        ? 'Companies'
+                        : 'Vehicles'),
             onChanged: (i) => setState(() => _filter = _typeForIndex(i)),
             expand: false,
           ),
@@ -65,8 +64,7 @@ class _VerificationQueueScreenState
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                   itemCount: list.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) =>
-                      _RequestCard(request: list[i]),
+                  itemBuilder: (_, i) => _RequestCard(request: list[i]),
                 ),
         ),
       ],
@@ -189,15 +187,13 @@ class _RequestCard extends ConsumerWidget {
           width: 84,
           child: Text(
             label,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       ],

@@ -145,14 +145,13 @@ class _IdentityCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             name,
-            style: const TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
             roleLabel,
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 12),
           VerificationBadge(status: verificationStatus),
@@ -203,8 +202,7 @@ class _Group extends StatelessWidget {
           ),
           ...rows.map(
             (r) => Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: _Row(row: r),
             ),
           ),
@@ -227,8 +225,8 @@ class _Row extends StatelessWidget {
         Expanded(
           child: Text(
             row.label,
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
         ),
         Flexible(
@@ -236,8 +234,7 @@ class _Row extends StatelessWidget {
             row.value,
             textAlign: TextAlign.right,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       ],

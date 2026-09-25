@@ -11,24 +11,37 @@ class GetStartedScreen extends ConsumerStatefulWidget {
   const GetStartedScreen({super.key});
 
   @override
-  ConsumerState<GetStartedScreen> createState() =>
-      _GetStartedScreenState();
+  ConsumerState<GetStartedScreen> createState() => _GetStartedScreenState();
 }
 
 class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
   FarmerType? _selected;
+  final _cropController = TextEditingController();
+  final _scaleOptions = ['small_scale', 'large_scale', 'not_specified'];
+  String? _selectedScale;
 
-  void _finish(FarmerType type) {
-    ref
-        .read(authControllerProvider)
-        .completeOnboarding(farmerType: type);
-    context.go(AppRoutes.home);
+  void _finish({bool skip = false}) {
+    final type = _selected ?? FarmerType.both;
+    ref.read(authControllerProvider).completeOnboarding(
+          farmerType: type,
+          cropDetails: _cropController.text.trim().isEmpty
+              ? (skip ? null : 'Not specified yet')
+              : _cropController.text.trim(),
+          farmScale: _selectedScale,
+        );
+    context.go(AppRoutes.onboardingComplete);
+  }
+
+  @override
+  void dispose() {
+    _cropController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Get started')),
+      appBar: AppBar(title: const Text('Set up your farm')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -37,12 +50,11 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
             children: [
               const Text(
                 'What kind of farmer are you?',
-                style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Optional — helps match your resources with nearby buyers and sellers.',
+                'Optional profile details help match your resources and buyers more accurately.',
                 style: TextStyle(color: AppColors.textSecondary),
               ),
               const SizedBox(height: 24),
@@ -51,8 +63,7 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
                 title: 'Plant / cash-crop farmer',
                 subtitle: 'Maize, sugarcane, coffee, vegetables',
                 selected: _selected == FarmerType.plant,
-                onTap: () =>
-                    setState(() => _selected = FarmerType.plant),
+                onTap: () => setState(() => _selected = FarmerType.plant),
               ),
               const SizedBox(height: 12),
               _TypeCard(
@@ -60,8 +71,7 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
                 title: 'Animal farmer',
                 subtitle: 'Cows, goats, sheep, chicken',
                 selected: _selected == FarmerType.animal,
-                onTap: () =>
-                    setState(() => _selected = FarmerType.animal),
+                onTap: () => setState(() => _selected = FarmerType.animal),
               ),
               const SizedBox(height: 12),
               _TypeCard(
@@ -71,24 +81,53 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
                 selected: _selected == FarmerType.both,
                 onTap: () => setState(() => _selected = FarmerType.both),
               ),
+              const SizedBox(height: 24),
+              const Text(
+                'What do you farm?',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _cropController,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  hintText: 'Maize, dairy cattle, coffee, poultry…',
+                  helperText: 'Free-text and optional',
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Farm scale',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _scaleOptions.map((opt) {
+                  final active = _selectedScale == opt;
+                  return ChoiceChip(
+                    label: Text(_scaleLabel(opt)),
+                    selected: active,
+                    onSelected: (_) => setState(() => _selectedScale = opt),
+                  );
+                }).toList(),
+              ),
               const SizedBox(height: 28),
               ElevatedButton(
-                onPressed: _selected == null
-                    ? null
-                    : () => _finish(_selected!),
-                child: const Text('Start trading'),
+                onPressed: _selected == null ? null : () => _finish(),
+                child: const Text('Continue'),
               ),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () => _finish(FarmerType.both),
+                onPressed: () => _finish(skip: true),
                 child: const Text('Skip for now'),
               ),
               const SizedBox(height: 8),
               const Text(
                 'You can change this later from your profile.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
             ],
           ),
@@ -96,6 +135,12 @@ class _GetStartedScreenState extends ConsumerState<GetStartedScreen> {
       ),
     );
   }
+
+  String _scaleLabel(String value) => switch (value) {
+        'small_scale' => 'Small scale',
+        'large_scale' => 'Large scale',
+        _ => 'Not specified',
+      };
 }
 
 class _TypeCard extends StatelessWidget {
@@ -134,9 +179,7 @@ class _TypeCard extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: selected
-                  ? AppColors.primary
-                  : AppColors.textSecondary,
+              color: selected ? AppColors.primary : AppColors.textSecondary,
               size: 32,
             ),
             const SizedBox(width: 16),
@@ -146,19 +189,16 @@ class _TypeCard extends StatelessWidget {
                 children: [
                   Text(title,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16)),
+                          fontWeight: FontWeight.w700, fontSize: 16)),
                   const SizedBox(height: 4),
                   Text(subtitle,
                       style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13)),
+                          color: AppColors.textSecondary, fontSize: 13)),
                 ],
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle,
-                  color: AppColors.primary),
+              const Icon(Icons.check_circle, color: AppColors.primary),
           ],
         ),
       ),
