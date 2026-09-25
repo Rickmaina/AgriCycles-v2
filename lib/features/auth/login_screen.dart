@@ -6,6 +6,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/extensions.dart';
 import '../../domain/validators.dart';
+import '../../routing/route_guards.dart';
 import 'controllers/auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -44,7 +45,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     result.when(
       success: (snap) {
         context.go(
-          snap.needsOnboarding ? AppRoutes.onboarding : AppRoutes.home,
+          snap.needsOnboarding
+              ? AppRoutes.onboarding
+              : homeRouteFor(snap.role),
         );
       },
       failure: (f) => context.showSnack(f.message),

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/constants/enums.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/utils/extensions.dart';
+import '../../core/theme/role_theme.dart';
 import '../../data/models/order_model.dart';
 import '../../data/services/auth_service.dart';
-import '../../shared/widgets/empty_state.dart';
+import '../../shared/widgets/farmer_status_icon.dart';
 import '../../shared/widgets/segmented_toggle.dart';
 import 'controllers/orders_controller.dart';
 import 'order_detail_screen.dart';
 
+/// Farmer orders. Buying / Selling, then one line per order.
 class OrdersListScreen extends ConsumerStatefulWidget {
   const OrdersListScreen({super.key});
 
@@ -25,60 +24,100 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const theme = RoleTheme.farmer;
     final user = ref.watch(authProvider);
-    if (user == null) return const SizedBox.shrink();
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     final orders = _tab == 0
         ? ref.watch(buyingOrdersProvider(user.id))
         : ref.watch(sellingOrdersProvider(user.id));
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: SegmentedToggle(
-            options: _tabs,
-            selectedIndex: _tab,
-            onChanged: (i) => setState(() => _tab = i),
+    return Container(
+      color: theme.background,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: SegmentedToggle(
+              options: _tabs,
+              selectedIndex: _tab,
+              onChanged: (i) => setState(() => _tab = i),
+            ),
           ),
-        ),
-        Expanded(
-          child: orders.isEmpty
-              ? EmptyState(
-                  icon: Icons.receipt_long_outlined,
-                  title: _tab == 0 ? 'No purchase orders yet' : 'No sales yet',
-                  subtitle: _tab == 0
-                      ? 'Browse the market and make an offer to get started.'
-                      : 'Your listings will show orders here once buyers engage.',
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                  itemCount: orders.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) => _OrderCard(
-                    order: orders[i],
-                    isBuying: _tab == 0,
+          Expanded(
+            child: orders.isEmpty
+                ? _empty(theme)
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    itemCount: orders.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (_, i) => _OrderRow(
+                      order: orders[i],
+                      isBuying: _tab == 0,
+                    ),
                   ),
-                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _empty(RoleTheme theme) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 56,
+              color: theme.textMuted,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _tab == 0 ? 'No orders yet' : 'No sales yet',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: theme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _tab == 0
+                  ? 'Find something you need and make an offer.'
+                  : 'Your listings will show orders here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.textSecondary,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderRow extends StatelessWidget {
   final OrderModel order;
   final bool isBuying;
 
-  const _OrderCard({required this.order, required this.isBuying});
+  const _OrderRow({required this.order, required this.isBuying});
 
   @override
   Widget build(BuildContext context) {
+    const theme = RoleTheme.farmer;
+    final tone = farmerToneForOrder(order.state);
     final counterparty = isBuying ? order.sellerName : order.buyerName;
-    final counterpartyLabel = isBuying ? 'from' : 'to';
+    final prefix = isBuying ? 'from' : 'to';
 
     return Material(
-      color: AppColors.surface,
+      color: theme.surface,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -88,68 +127,50 @@ class _OrderCard extends StatelessWidget {
           ),
         ),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.border),
             borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: theme.border, width: 1.5),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
+              FarmerStatusIcon(tone: tone, size: FarmerStatusSize.large),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
                       order.resourceType,
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  _StateChip(state: order.state),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '$counterpartyLabel $counterparty',
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  const Icon(Icons.location_on_outlined,
-                      size: 14, color: AppColors.textMuted),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      order.pickupBroadLocation,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: theme.textPrimary,
+                        height: 1.2,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '${order.quantity} ${order.unit}',
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      '$prefix $counterparty  ·  ${_total()}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: theme.textSecondary,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    (order.quantity * order.pricePerUnit).kes,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.chevron_right, color: AppColors.textMuted),
-                ],
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                color: theme.textMuted,
+                size: 22,
               ),
             ],
           ),
@@ -157,55 +178,16 @@ class _OrderCard extends StatelessWidget {
       ),
     );
   }
-}
 
-class _StateChip extends StatelessWidget {
-  final OrderState state;
-  const _StateChip({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _colorFor(state);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        state.label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  Color _colorFor(OrderState s) {
-    switch (s) {
-      case OrderState.requested:
-        return AppColors.statePending;
-      case OrderState.negotiation:
-        return AppColors.stateActive;
-      case OrderState.accepted:
-        return AppColors.info;
-      case OrderState.paymentSecured:
-        return AppColors.stateSecured;
-      case OrderState.pickupScheduled:
-        return AppColors.stateActive;
-      case OrderState.qualityConfirmed:
-        return AppColors.stateActive;
-      case OrderState.completed:
-      case OrderState.paymentReleased:
-      case OrderState.rated:
-        return AppColors.stateCompleted;
-      case OrderState.declined:
-      case OrderState.disputed:
-        return AppColors.stateDisputed;
-      case OrderState.expired:
-        return AppColors.stateExpired;
+  String _total() {
+    final total = order.quantity * order.pricePerUnit;
+    final rounded = total.round();
+    final s = rounded.toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
     }
+    return 'KES ${buf.toString()}';
   }
 }

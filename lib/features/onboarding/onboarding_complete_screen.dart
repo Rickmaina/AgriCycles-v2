@@ -3,82 +3,143 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_routes.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/role_theme.dart';
+import '../../shared/widgets/farmer_action_button.dart';
+import 'controllers/onboarding_controller.dart';
 
-class OnboardingCompleteScreen extends ConsumerWidget {
+/// Screen 3 of onboarding: confirmation and handoff.
+///
+/// Shows a summary, previews the three main actions, then commits the
+/// onboarding data and navigates home.
+class OnboardingCompleteScreen extends ConsumerStatefulWidget {
   const OnboardingCompleteScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OnboardingCompleteScreen> createState() =>
+      _OnboardingCompleteScreenState();
+}
+
+class _OnboardingCompleteScreenState
+    extends ConsumerState<OnboardingCompleteScreen> {
+  bool _committing = false;
+
+  void _start() {
+    if (_committing) return;
+    setState(() => _committing = true);
+
+    ref.read(onboardingControllerProvider.notifier).commit();
+
+    // Small delay so the loading state is visible and the state
+    // change propagates before we navigate.
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      context.go(AppRoutes.home);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const theme = RoleTheme.farmer;
+
     return Scaffold(
+      backgroundColor: theme.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                size: 64,
-                color: AppColors.primary,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'You’re set up',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'What you can do now',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.textSecondary,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          color: theme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 52,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      "You're ready",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: theme.textPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Here is what you can do now.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: theme.textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const _PreviewTile(
+                      icon: Icons.sell_outlined,
+                      title: 'Sell what you have',
+                      subtitle: 'List crop waste, manure, feed',
+                      theme: RoleTheme.farmer,
+                    ),
+                    const SizedBox(height: 12),
+                    const _PreviewTile(
+                      icon: Icons.shopping_basket_outlined,
+                      title: 'Buy from other farmers',
+                      subtitle: 'Browse listings near you',
+                      theme: RoleTheme.farmer,
+                    ),
+                    const SizedBox(height: 12),
+                    const _PreviewTile(
+                      icon: Icons.list_alt_outlined,
+                      title: 'Track your deals',
+                      subtitle: 'See offers, orders, and pickups',
+                      theme: RoleTheme.farmer,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-              const _ActionCard(
-                icon: Icons.storefront_outlined,
-                title: 'Browse the marketplace',
-                subtitle: 'See local resources and buy-first requests nearby.',
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+              child: FarmerActionButton(
+                label: 'Start',
+                icon: Icons.arrow_forward,
+                onPressed: _committing ? null : _start,
+                loading: _committing,
               ),
-              const SizedBox(height: 12),
-              const _ActionCard(
-                icon: Icons.add_box_outlined,
-                title: 'List what you have',
-                subtitle:
-                    'Post crop residue, manure, feed, or other materials.',
-              ),
-              const SizedBox(height: 12),
-              const _ActionCard(
-                icon: Icons.help_outline,
-                title: 'Open help anytime',
-                subtitle: 'Use the help button in the app bar for quick tips.',
-              ),
-              const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: () => context.go(AppRoutes.home),
-                child: const Text('Open your dashboard'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ActionCard extends StatelessWidget {
+class _PreviewTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final RoleTheme theme;
 
-  const _ActionCard({
+  const _PreviewTile({
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.theme,
   });
 
   @override
@@ -86,31 +147,44 @@ class _ActionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: theme.border, width: 1.5),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary),
-          const SizedBox(width: 12),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: theme.primaryMuted,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon, color: theme.primary, size: 24),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
+                    color: theme.textPrimary,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: theme.textSecondary,
+                    height: 1.3,
                   ),
                 ),
               ],

@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/constants/enums.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/utils/extensions.dart';
+import '../../core/theme/role_theme.dart';
 import '../../data/models/order_model.dart';
 import '../../data/services/auth_service.dart';
-import '../../domain/order_state_machine.dart';
 import '../../domain/transport_estimator.dart';
+import '../../shared/widgets/farmer_action_button.dart';
 import '../../shared/widgets/status_tracker.dart';
+import '../disputes/screens/raise_dispute_screen.dart';
 import 'controllers/orders_controller.dart';
 import 'rate_order_screen.dart';
-import '../disputes/screens/raise_dispute_screen.dart';
 
+/// Farmer's order detail. Large status timeline, payment strip,
+/// two actions max.
 class OrderDetailScreen extends ConsumerWidget {
   final String orderId;
   const OrderDetailScreen({super.key, required this.orderId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    const theme = RoleTheme.farmer;
     final order = ref.watch(orderByIdProvider(orderId));
     final user = ref.watch(authProvider);
 
@@ -32,282 +35,249 @@ class OrderDetailScreen extends ConsumerWidget {
     final isBuyer = user.id == order.buyerId;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Order #${order.id.substring(3)}')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [
-          _SummaryCard(order: order, isBuyer: isBuyer),
-          const SizedBox(height: 16),
-          _RouteCard(order: order),
-          if (user.role == UserRole.company) ...[
-            const SizedBox(height: 16),
-            _CompanyPickupStrip(order: order),
-          ],
-          const SizedBox(height: 20),
-          const _SectionLabel('Status'),
-          const SizedBox(height: 12),
-          _buildTracker(order),
-          if (_showLogistics(order)) ...[
-            const SizedBox(height: 24),
-            const _SectionLabel('Logistics'),
-            const SizedBox(height: 12),
-            _LogisticsCard(order: order),
-          ],
-          const SizedBox(height: 24),
-          _ActionButton(order: order, isBuyer: isBuyer),
-          if (_canRaiseDispute(order) && !order.state.isTerminal) ...[
-            const SizedBox(height: 10),
-            OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => RaiseDisputeScreen(order: order),
-                ),
-              ),
-              icon: const Icon(Icons.gavel_outlined, size: 18),
-              label: const Text('Raise dispute'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.danger,
-                side: const BorderSide(color: AppColors.danger),
+      backgroundColor: theme.background,
+      appBar: AppBar(
+        backgroundColor: theme.surface,
+        foregroundColor: theme.textPrimary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text('Order'),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                children: [
+                  _paymentStrip(theme, order),
+                  const SizedBox(height: 16),
+                  _summary(theme, order, isBuyer),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Progress',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: theme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _tracker(order),
+                  const SizedBox(height: 20),
+                  _route(theme, order),
+                ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: _actionButton(context, ref, order, isBuyer),
+            ),
           ],
-          const SizedBox(height: 8),
-          const Text(
-            'Contact details are shared only after acceptance and only between the two parties.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+        ),
+      ),
+    );
+  }
+
+  Widget _paymentStrip(RoleTheme theme, OrderModel order) {
+    final (label, color, icon) = _paymentStatus(order);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 26),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _total(order),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: theme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  bool _canRaiseDispute(OrderModel order) =>
-      order.state == OrderState.accepted ||
-      order.state == OrderState.paymentSecured ||
-      order.state == OrderState.pickupScheduled ||
-      order.state == OrderState.qualityConfirmed;
-
-  bool _showLogistics(OrderModel order) =>
-      order.state == OrderState.paymentSecured ||
-      order.state == OrderState.pickupScheduled ||
-      order.state == OrderState.qualityConfirmed;
-
-  Widget _buildTracker(OrderModel order) {
-    if (order.state.isBranch) {
-      return StatusTracker(
-        steps: const [],
-        currentIndex: 0,
-        terminalLabel: switch (order.state) {
-          OrderState.disputed => 'Disputed — Admin is reviewing',
-          OrderState.declined => 'Declined by seller',
-          OrderState.expired => 'Expired — no action taken',
-          _ => order.state.label,
-        },
-      );
+  (String, Color, IconData) _paymentStatus(OrderModel order) {
+    const theme = RoleTheme.farmer;
+    if (order.state == OrderState.paymentReleased ||
+        order.state == OrderState.completed ||
+        order.state == OrderState.rated) {
+      return ('Paid', theme.primary, Icons.check_circle);
     }
-    final labels = OrderStateMachine.linearFlow.map((s) => s.label).toList();
-    final idx = OrderStateMachine.stepIndex(order.state);
-    return StatusTracker(steps: labels, currentIndex: idx);
+    if (order.state == OrderState.paymentSecured) {
+      return ('Payment secured', theme.primary, Icons.lock);
+    }
+    if (order.state == OrderState.disputed) {
+      return ('Payment on hold', theme.danger, Icons.pause_circle);
+    }
+    return ('Pay on delivery', theme.accent, Icons.schedule);
   }
-}
 
-class _SectionLabel extends StatelessWidget {
-  final String text;
-  const _SectionLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final OrderModel order;
-  final bool isBuyer;
-  const _SummaryCard({required this.order, required this.isBuyer});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _summary(RoleTheme theme, OrderModel order, bool isBuyer) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: theme.border, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             order.resourceType,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: theme.textPrimary,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             isBuyer ? 'from ${order.sellerName}' : 'to ${order.buyerName}',
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: TextStyle(
+              fontSize: 13,
+              color: theme.textSecondary,
+            ),
           ),
-          const SizedBox(height: 14),
-          _row('Quantity', '${order.quantity} ${order.unit}'),
-          const SizedBox(height: 6),
-          _row('Price / ${order.unit}', order.pricePerUnit.kes),
-          const SizedBox(height: 6),
-          _row(
-            'Total',
-            (order.quantity * order.pricePerUnit).kes,
-            bold: true,
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Text(
+                '${order.quantity} ${order.unit}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: theme.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'KES ${order.pricePerUnit.round()} / ${order.unit}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: theme.textSecondary,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _row(String label, String value, {bool bold = false}) {
-    return Row(
-      children: [
-        Text(label,
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-        const Spacer(),
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-              color: bold ? AppColors.primary : AppColors.textPrimary,
-            ),
-          ),
-        ),
+  Widget _tracker(OrderModel order) {
+    if (order.state.isBranch) {
+      final label = switch (order.state) {
+        OrderState.disputed => 'Problem — being reviewed',
+        OrderState.declined => 'Declined',
+        OrderState.expired => 'Expired',
+        _ => order.state.label,
+      };
+      return StatusTracker(
+        steps: const [],
+        currentIndex: 0,
+        terminalLabel: label,
+      );
+    }
+    const flow = [
+      OrderState.requested,
+      OrderState.negotiation,
+      OrderState.accepted,
+      OrderState.paymentSecured,
+      OrderState.pickupScheduled,
+      OrderState.qualityConfirmed,
+      OrderState.completed,
+      OrderState.paymentReleased,
+      OrderState.rated,
+    ];
+    final idx = flow.indexOf(order.state);
+    return StatusTracker(
+      steps: const [
+        'Asked',
+        'Talking',
+        'Agreed',
+        'Payment',
+        'Pickup',
+        'Quality',
+        'Done',
+        'Paid',
+        'Rated',
       ],
+      currentIndex: idx < 0 ? 0 : idx,
     );
   }
-}
 
-class _RouteCard extends StatelessWidget {
-  final OrderModel order;
-  const _RouteCard({required this.order});
-
-  @override
-  Widget build(BuildContext context) {
-    final distance = TransportEstimator.distanceKm(
+  Widget _route(RoleTheme theme, OrderModel order) {
+    final km = TransportEstimator.distanceKm(
       pickupCounty: order.pickupCounty,
       deliveryCounty: order.deliveryCounty,
     );
-    final cost = TransportEstimator.costKes(
-      pickupCounty: order.pickupCounty,
-      deliveryCounty: order.deliveryCounty,
-      quantityTonnes: order.quantity,
-    );
-
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: theme.border, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Route',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary,
-            ),
+          _routeLine(
+            theme,
+            Icons.agriculture_outlined,
+            theme.primary,
+            'From',
+            order.pickupBroadLocation,
           ),
-          const SizedBox(height: 12),
-          _endpoint(
-            icon: Icons.agriculture_outlined,
-            color: AppColors.primary,
-            label: 'Pickup',
-            location: order.pickupBroadLocation,
-            county: order.pickupCounty,
+          const SizedBox(height: 10),
+          _routeLine(
+            theme,
+            Icons.location_on,
+            theme.accent,
+            'To',
+            order.deliveryBroadLocation,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 18),
-            child: SizedBox(
-              width: 2,
-              height: 22,
-              child: ColoredBox(color: AppColors.border),
-            ),
-          ),
-          _endpoint(
-            icon: Icons.location_on,
-            color: AppColors.secondary,
-            label: 'Delivery',
-            location: order.deliveryBroadLocation,
-            county: order.deliveryCounty,
-          ),
-          if (order.deliveryNotes != null) ...[
+          if (km > 0) ...[
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceAlt,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.sticky_note_2_outlined,
-                      size: 16, color: AppColors.textSecondary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      order.deliveryNotes!,
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          if (distance > 0) ...[
-            const Divider(height: 24, color: AppColors.border),
             Row(
               children: [
-                const Icon(Icons.route_outlined,
-                    size: 18, color: AppColors.info),
-                const SizedBox(width: 8),
+                Icon(Icons.route_outlined, size: 16, color: theme.textMuted),
+                const SizedBox(width: 6),
                 Text(
-                  '≈ ${distance.toStringAsFixed(0)} km',
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-                const Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text(
-                      'Est. transport',
-                      style:
-                          TextStyle(fontSize: 11, color: AppColors.textMuted),
-                    ),
-                    Text(
-                      cost.kes,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
+                  'About ${km.toStringAsFixed(0)} km',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: theme.textSecondary,
+                  ),
                 ),
               ],
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Straight-line estimate. Final rate confirmed by Admin-assigned transporter.',
-              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
             ),
           ],
         ],
@@ -315,24 +285,16 @@ class _RouteCard extends StatelessWidget {
     );
   }
 
-  Widget _endpoint({
-    required IconData icon,
-    required Color color,
-    required String label,
-    required String location,
-    required String county,
-  }) {
+  Widget _routeLine(
+    RoleTheme theme,
+    IconData icon,
+    Color color,
+    String label,
+    String value,
+  ) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 18, color: color),
-        ),
+        Icon(icon, color: color, size: 22),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -341,18 +303,19 @@ class _RouteCard extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w700, color: color),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
-                location,
-                style:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-              ),
-              Text(
-                county,
-                style:
-                    const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: theme.textPrimary,
+                ),
               ),
             ],
           ),
@@ -360,165 +323,91 @@ class _RouteCard extends StatelessWidget {
       ],
     );
   }
-}
 
-class _LogisticsCard extends StatelessWidget {
-  final OrderModel order;
-  const _LogisticsCard({required this.order});
-
-  @override
-  Widget build(BuildContext context) {
-    final state = order.logisticsState;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.info.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.info.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.local_shipping_outlined,
-              color: AppColors.info, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Admin-mediated pickup',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  state?.label ?? 'Not yet scheduled',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionButton extends ConsumerWidget {
-  final OrderModel order;
-  final bool isBuyer;
-  const _ActionButton({required this.order, required this.isBuyer});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final label = _labelFor(order.state, isBuyer);
+  Widget _actionButton(
+    BuildContext context,
+    WidgetRef ref,
+    OrderModel order,
+    bool isBuyer,
+  ) {
+    final controller = ref.read(ordersControllerProvider);
+    final label = _actionLabel(order.state, isBuyer);
     if (label == null) return const SizedBox.shrink();
 
-    return ElevatedButton(
-      onPressed: () => _handleTap(context, ref),
-      child: Text(label),
+    return FarmerActionButton(
+      label: label,
+      icon: _actionIcon(order.state),
+      onPressed: () {
+        if (order.state == OrderState.paymentReleased) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => RateOrderScreen(orderId: order.id),
+            ),
+          );
+          return;
+        }
+        if (order.state == OrderState.qualityConfirmed && isBuyer) {
+          controller.advance(order.id);
+          return;
+        }
+        if (order.state == OrderState.disputed) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => RaiseDisputeScreen(order: order),
+            ),
+          );
+          return;
+        }
+        controller.advance(order.id);
+      },
     );
   }
 
-  String? _labelFor(OrderState state, bool isBuyer) {
-    if (state.isTerminal) return null;
+  String? _actionLabel(OrderState state, bool isBuyer) {
     switch (state) {
+      case OrderState.requested:
+        return isBuyer ? null : 'Accept';
       case OrderState.negotiation:
-        return isBuyer ? null : 'Accept offer';
+        return isBuyer ? null : 'Accept';
       case OrderState.accepted:
-        return isBuyer ? 'Secure payment' : null;
+        return isBuyer ? 'Pay now' : null;
       case OrderState.paymentSecured:
-        return 'Simulate Admin assignment';
+        return 'Waiting for pickup';
       case OrderState.pickupScheduled:
-        return 'Mark delivered';
+        return 'Waiting for delivery';
       case OrderState.qualityConfirmed:
-        return isBuyer ? 'Confirm quality & complete' : null;
+        return isBuyer ? 'Confirm' : null;
       case OrderState.completed:
         return 'Release payment';
       case OrderState.paymentReleased:
-        return 'Rate transaction';
-      case OrderState.requested:
-        return isBuyer ? null : 'Start negotiation';
+        return 'Rate this order';
       default:
         return null;
     }
   }
 
-  void _handleTap(BuildContext context, WidgetRef ref) {
-    final controller = ref.read(ordersControllerProvider);
-
-    if (order.state == OrderState.paymentReleased) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => RateOrderScreen(orderId: order.id),
-        ),
-      );
-      return;
+  IconData _actionIcon(OrderState state) {
+    switch (state) {
+      case OrderState.paymentReleased:
+        return Icons.star_outline;
+      case OrderState.qualityConfirmed:
+        return Icons.check;
+      case OrderState.accepted:
+        return Icons.payment;
+      default:
+        return Icons.arrow_forward;
     }
-
-    controller.advance(order.id);
-  }
-}
-
-class _CompanyPickupStrip extends StatelessWidget {
-  final OrderModel order;
-  const _CompanyPickupStrip({required this.order});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.20)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.route_outlined, size: 18, color: AppColors.primary),
-              SizedBox(width: 8),
-              Text(
-                'Coordination details',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _row('Pickup contact', order.sellerName),
-          const SizedBox(height: 6),
-          _row('Pickup area', order.pickupBroadLocation),
-          const SizedBox(height: 6),
-          _row('Deliver to', order.deliveryBroadLocation),
-          if (order.deliveryNotes != null) ...[
-            const SizedBox(height: 6),
-            _row('Landmark', order.deliveryNotes!),
-          ],
-        ],
-      ),
-    );
   }
 
-  Widget _row(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 108,
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
-    );
+  String _total(OrderModel order) {
+    final total = order.quantity * order.pricePerUnit;
+    final rounded = total.round();
+    final s = rounded.toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return 'KES ${buf.toString()}';
   }
 }

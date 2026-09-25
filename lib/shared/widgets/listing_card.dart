@@ -1,144 +1,161 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
-import '../../core/utils/extensions.dart';
+import '../../core/theme/role_theme.dart';
 import '../../data/models/listing_model.dart';
-import 'base_card.dart';
-import 'verification_badge.dart';
 
-/// Safe-by-default listing card (Section 4.2 + 8.1).
-/// Renders broad location + seller name — never phone or exact address.
+/// Farmer-facing listing card. Photo-first, one price, one location.
+///
+/// The card shows the minimum a farmer needs to decide whether to tap:
+/// what it is, what it costs, and where it is. Everything else is one
+/// tap away. Contact details are never on the card (Section 8.1).
 class ListingCard extends StatelessWidget {
   final ListingModel listing;
   final VoidCallback? onTap;
+
+  final String? distanceLabel;
 
   const ListingCard({
     super.key,
     required this.listing,
     this.onTap,
+    this.distanceLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BaseCard(
-      onTap: onTap,
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _photo(),
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
+    const theme = RoleTheme.farmer;
+
+    return Material(
+      color: theme.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.border, width: 1.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(flex: 6, child: _photo(theme)),
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
                         listing.resourceType,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: theme.textPrimary,
+                          height: 1.2,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    VerificationBadge(
-                      status: listing.sellerVerification,
-                      compact: true,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  listing.category,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_outlined,
-                        size: 14, color: AppColors.textMuted),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        listing.broadLocation,
+                      const Spacer(),
+                      Text(
+                        _priceLine(),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: theme.primary,
+                          height: 1.1,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on_outlined,
+                              size: 14, color: theme.textMuted),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              distanceLabel ?? listing.county,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: theme.textSecondary,
+                                height: 1.1,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      listing.pricePerUnit.kes,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '/ ${listing.unit}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${listing.quantity} ${listing.unit}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _photo() {
+  Widget _photo(RoleTheme theme) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
       child: Container(
-        height: 118,
-        color: AppColors.surfaceAlt,
+        color: theme.primaryMuted,
         child: listing.photoUrl == null
-            ? const Center(
-                child: Icon(Icons.image_outlined,
-                    size: 42, color: AppColors.textMuted),
+            ? Center(
+                child: Icon(
+                  _iconForCategory(),
+                  size: 56,
+                  color: theme.primary,
+                ),
               )
             : Image.network(
                 listing.photoUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Center(
-                  child: Icon(Icons.image_outlined,
-                      size: 42, color: AppColors.textMuted),
+                errorBuilder: (_, __, ___) => Center(
+                  child: Icon(
+                    _iconForCategory(),
+                    size: 56,
+                    color: theme.primary,
+                  ),
                 ),
               ),
       ),
     );
+  }
+
+  IconData _iconForCategory() {
+    switch (listing.category) {
+      case 'Crop residue':
+        return Icons.grass;
+      case 'Animal waste':
+        return Icons.pets;
+      case 'By-product':
+        return Icons.inventory_2_outlined;
+      default:
+        return Icons.eco;
+    }
+  }
+
+  String _priceLine() {
+    final price = listing.pricePerUnit.round();
+    final formatted = _formatKes(price);
+    return 'KES $formatted / ${listing.unit}';
+  }
+
+  String _formatKes(int amount) {
+    final s = amount.toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return buf.toString();
   }
 }
