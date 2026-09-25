@@ -44,6 +44,14 @@ Supported values for `listing.status` in the repo are:
 
 Implemented note: the controller creates new listings in `pendingReview`, and browse results only expose listings with `status == active`.
 
+### 5.14b Driver profile model
+
+The repo includes a minimal `DriverProfile` model at [lib/data/models/driver_profile.dart](../lib/data/models/driver_profile.dart) with fields `id`, `driverId`, `driverName`, `baseLocation` (GeoLocation), `createdAt`, `updatedAt`.
+
+- Not yet wired into `UserRole` — the `driver` role value is scheduled for Phase 1.5 (per the master plan).
+- Seed drivers exist but are not linked to any seed user.
+- Full driver UI is deferred to Phase 3B.
+
 ### 5.15 User model notes
 
 The current repo already includes `farmer_type` and `crop_details` in the app’s `UserModel` implementation. A new optional `farm_scale` field is present but remains a loosely typed value until product review is complete.
@@ -66,6 +74,16 @@ This is a proposed field and intentionally lightweight so onboarding can stay fl
 
 ## Changelog
 
+### 2026-09-25
+
+- **Phase 0 audit complete.** 27 findings recorded; see [STATUS.md](../STATUS.md) for the full audit trail and current verified state.
+- **Merge regression recovered.** Remote branch integrated in `b674362` regressed 7 feature files (removed `LocationPicker`, reverted to legacy `KenyaLocations`, removed community gate, reverted listing review flow). Recovered in `44eea2d`.
+- **Browse filter applied.** `BrowseScreen._filtered` now filters to `isVisibleToPublic` listings only (was missing despite the contract stating it should exist).
+- **Duplicate privacy doc removed.** `lib/core/privacy_coordinates.md` deleted; the authoritative copy is [PRIVACY_COORDINATES.md](../PRIVACY_COORDINATES.md).
+- **Driver profile model added to contract** (see §5.14b).
+- **Merge process risk:** any branch pushing to `main` must `git pull --rebase origin main` before pushing. Otherwise regressions recur.
+- **Register screen changes:** merged `AuthController.register()` accepts `fullName`, `phone`, `password`, `email`, `role`, `county`, `subCounty`. **`area`/ward is not accepted at registration** — this is a new gap versus the prior signature; farmer ward will be null until edited.
+
 ### 2026-09-21
 
 - Synced the contract with the implemented listing-review gate: new listings default to `pendingReview`, and browse results hide any non-`active` listing.
@@ -75,7 +93,7 @@ This is a proposed field and intentionally lightweight so onboarding can stay fl
 ## Appendix: implemented repo sources
 
 - GeoLocation model: [lib/data/models/geo_location.dart](../lib/data/models/geo_location.dart)
-- Privacy doc: [lib/core/privacy_coordinates.md](../lib/core/privacy_coordinates.md)
+- Privacy doc: [PRIVACY_COORDINATES.md](../PRIVACY_COORDINATES.md)
 - Transport estimator: [lib/domain/transport_estimator.dart](../lib/domain/transport_estimator.dart)
 - Notification center: [lib/features/notifications/screens/notifications_screen.dart](../lib/features/notifications/screens/notifications_screen.dart)
 - Notification controller: [lib/features/notifications/controllers/notification_controller.dart](../lib/features/notifications/controllers/notification_controller.dart)
