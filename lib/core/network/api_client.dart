@@ -136,6 +136,7 @@ class ApiClient {
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.connectionError) {
         throw const NetworkFailure();
+        //
       }
       throw  UnknownFailure('Network error: ${e.type} ${e.message}');
     } on AppFailure {
