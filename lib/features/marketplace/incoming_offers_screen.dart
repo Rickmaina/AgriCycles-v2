@@ -49,6 +49,36 @@ class IncomingOffersScreen extends ConsumerWidget {
   }
 }
 
+void _showOfferDialog(
+    BuildContext context, OfferModel offer, ListingModel listing) {
+  showDialog<void>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: Text(listing.resourceType),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Buyer: ${offer.buyerName}'),
+          const SizedBox(height: 8),
+          Text('Quantity: ${offer.quantity} ${listing.unit}'),
+          const SizedBox(height: 8),
+          Text('Price: ${(offer.pricePerUnit).kes} / ${listing.unit}'),
+          const SizedBox(height: 8),
+          Text(
+              'Delivery: ${offer.deliveryArea}, ${offer.deliverySubCounty} (${offer.deliveryCounty})'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+}
+
 class _OfferCard extends ConsumerWidget {
   final OfferModel offer;
   final ListingModel listing;
@@ -97,9 +127,11 @@ class _OfferCard extends ConsumerWidget {
           sellerName: seller.name,
           quantity: agreedQuantity,
           pricePerUnit: agreedPrice,
+          pickupLocation: listing.location,
           pickupCounty: listing.county,
           pickupSubCounty: listing.subCounty,
           pickupArea: listing.area,
+          deliveryLocation: offer.deliveryLocation,
           deliveryCounty: offer.deliveryCounty,
           deliverySubCounty: offer.deliverySubCounty,
           deliveryArea: offer.deliveryArea,
@@ -138,98 +170,111 @@ class _OfferCard extends ConsumerWidget {
     final nextName =
         nextId == offer.buyerId ? offer.buyerName : offer.sellerName;
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        onTap: () => _showOfferDialog(context, offer, listing),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  listing.resourceType,
-                  style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w700),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      listing.resourceType,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  _StatusChip(status: offer.status),
+                ],
               ),
-              _StatusChip(status: offer.status),
-            ],
-          ),
-          const SizedBox(height: 12),
-          OfferHistory(
-            offer: offer,
-            unit: listing.unit,
-            currentActorId: decided || capped || expired ? null : nextId,
-            currentActorName: decided || capped || expired ? null : nextName,
-          ),
-          const SizedBox(height: 4),
-          _line('Deliver to',
-              '${offer.deliveryArea}, ${offer.deliverySubCounty} (${offer.deliveryCounty})'),
-          if (offer.deliveryNotes != null) ...[
-            const SizedBox(height: 4),
-            _line('Notes', offer.deliveryNotes!),
-          ],
-          if (expired) ...[
-            const SizedBox(height: 12),
-            _banner(
-              icon: Icons.schedule,
-              color: AppColors.textMuted,
-              text: 'Negotiation expired (7-day limit)',
-            ),
-          ] else if (capped && !decided) ...[
-            const SizedBox(height: 12),
-            _banner(
-              icon: Icons.block,
-              color: AppColors.danger,
-              text: 'Counter-offer cap reached ($kMaxCounterRounds rounds)',
-            ),
-          ],
-          if (!decided && !expired && !capped) ...[
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _decline(context, ref),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.danger,
-                      side: const BorderSide(color: AppColors.danger),
-                      minimumSize: const Size.fromHeight(44),
-                    ),
-                    child: const Text('Decline'),
-                  ),
+              const SizedBox(height: 12),
+              OfferHistory(
+                offer: offer,
+                unit: listing.unit,
+                currentActorId: decided || capped || expired ? null : nextId,
+                currentActorName:
+                    decided || capped || expired ? null : nextName,
+              ),
+              const SizedBox(height: 4),
+              _line(
+                'Deliver to',
+                '${offer.deliveryArea}, ${offer.deliverySubCounty} (${offer.deliveryCounty})',
+              ),
+              if (offer.deliveryNotes != null) ...[
+                const SizedBox(height: 4),
+                _line('Notes', offer.deliveryNotes!),
+              ],
+              if (expired) ...[
+                const SizedBox(height: 12),
+                _banner(
+                  icon: Icons.schedule,
+                  color: AppColors.textMuted,
+                  text: 'Negotiation expired (7-day limit)',
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: myTurn ? () => _counter(context, ref) : null,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      minimumSize: const Size.fromHeight(44),
-                    ),
-                    child: const Text('Counter'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: myTurn ? () => _accept(context, ref) : null,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(44),
-                    ),
-                    child: const Text('Accept'),
-                  ),
+              ] else if (capped && !decided) ...[
+                const SizedBox(height: 12),
+                _banner(
+                  icon: Icons.block,
+                  color: AppColors.danger,
+                  text: 'Counter-offer cap reached ($kMaxCounterRounds rounds)',
                 ),
               ],
-            ),
-          ],
-        ],
+              if (!decided && !expired && !capped) ...[
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => _decline(context, ref),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.danger,
+                          side: const BorderSide(color: AppColors.danger),
+                          minimumSize: const Size.fromHeight(44),
+                        ),
+                        child: const Text('Decline'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: myTurn ? () => _counter(context, ref) : null,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                          minimumSize: const Size.fromHeight(44),
+                        ),
+                        child: const Text('Counter'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: myTurn ? () => _accept(context, ref) : null,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(44),
+                        ),
+                        child: const Text('Accept'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

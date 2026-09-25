@@ -50,7 +50,7 @@ google-services.json
 GoogleService-Info.plist
 
 # ─────────────────────────────────────────────────────────────
-# Platform build artifacts (in case any leak out of build/)
+# Platform build artifacts
 # ─────────────────────────────────────────────────────────────
 android/.gradle/
 android/local.properties

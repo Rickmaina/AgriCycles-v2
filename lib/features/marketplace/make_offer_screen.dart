@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/constants/kenya_locations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/extensions.dart';
 import '../../data/models/listing_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../domain/transport_estimator.dart';
 import '../../domain/validators.dart';
+import '../../shared/widgets/location_picker.dart';
 import 'controllers/marketplace_controller.dart';
 
 class MakeOfferScreen extends ConsumerStatefulWidget {
@@ -25,18 +25,25 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
   late final TextEditingController _quantity;
   late final TextEditingController _price;
   final _message = TextEditingController();
-  final _deliverySubCounty = TextEditingController();
-  final _deliveryArea = TextEditingController();
   final _deliveryNotes = TextEditingController();
-  String? _deliveryCounty;
+
+  LocationSelection? _delivery;
+  String? _locationError;
 
   @override
   void initState() {
     super.initState();
-    _quantity = TextEditingController(text: widget.listing.quantity.toString());
+    _quantity =
+        TextEditingController(text: widget.listing.quantity.toString());
     _price = TextEditingController(
         text: widget.listing.pricePerUnit.toStringAsFixed(0));
-    _deliveryCounty = widget.listing.county;
+    // Pre-fill delivery with the listing's own location — the common case
+    // is a buyer who wants the goods delivered locally.
+    _delivery = LocationSelection(
+      county: widget.listing.county,
+      subCounty: widget.listing.subCounty,
+      ward: widget.listing.area,
+    );
   }
 
   @override
@@ -44,21 +51,30 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
     _quantity.dispose();
     _price.dispose();
     _message.dispose();
-    _deliverySubCounty.dispose();
-    _deliveryArea.dispose();
     _deliveryNotes.dispose();
     super.dispose();
   }
 
-  double get _distanceKm => _deliveryCounty == null
+  double get _distanceKm => _delivery == null
       ? 0
       : TransportEstimator.distanceKm(
           pickupCounty: widget.listing.county,
-          deliveryCounty: _deliveryCounty!,
+          deliveryCounty: _delivery!.county,
         );
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final formOk = _formKey.currentState!.validate();
+    final locationOk = _delivery != null &&
+        _delivery!.county.isNotEmpty &&
+        _delivery!.subCounty.isNotEmpty;
+    if (!formOk || !locationOk) {
+      if (!locationOk) {
+        setState(() => _locationError =
+            'Please select a delivery county and sub-county.');
+      }
+      return;
+    }
+
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -68,13 +84,15 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
           buyerName: user.name,
           quantity: double.parse(_quantity.text.trim()),
           pricePerUnit: double.parse(_price.text.trim()),
-          deliveryCounty: _deliveryCounty!,
-          deliverySubCounty: _deliverySubCounty.text.trim(),
-          deliveryArea: _deliveryArea.text.trim(),
+          deliveryCounty: _delivery!.county,
+          deliverySubCounty: _delivery!.subCounty,
+          deliveryArea: _delivery!.ward,
           deliveryNotes: _deliveryNotes.text.trim().isEmpty
               ? null
               : _deliveryNotes.text.trim(),
-          message: _message.text.trim().isEmpty ? null : _message.text.trim(),
+          message: _message.text.trim().isEmpty
+              ? null
+              : _message.text.trim(),
         );
 
     context.showSnack('Offer sent to seller');
@@ -142,34 +160,28 @@ class _MakeOfferScreenState extends ConsumerState<MakeOfferScreen> {
                 const Text(
                   'Where do you want the goods delivered? The seller and Admin logistics see this once you make the offer.',
                   style: TextStyle(
-                      fontSize: 12, color: AppColors.textMuted, height: 1.4),
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                      height: 1.4),
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _deliveryCounty,
-                  decoration: const InputDecoration(labelText: 'County'),
-                  items: KenyaLocations.counties
-                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _deliveryCounty = v),
-                  validator: Validators.county,
+                const SizedBox(height: 14),
+                LocationPicker(
+                  initial: _delivery,
+                  onChanged: (sel) => setState(() {
+                    _delivery = sel;
+                    _locationError = null;
+                  }),
+                  onValidationError: (msg) =>
+                      setState(() => _locationError = msg),
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _deliverySubCounty,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(labelText: 'Sub-county'),
-                  validator: (v) =>
-                      Validators.requiredText(v, label: 'Sub-county'),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _deliveryArea,
-                  textCapitalization: TextCapitalization.words,
-                  decoration:
-                      const InputDecoration(labelText: 'Area / Village'),
-                  validator: (v) => Validators.requiredText(v, label: 'Area'),
-                ),
+                if (_locationError != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    _locationError!,
+                    style: const TextStyle(
+                        color: AppColors.danger, fontSize: 12),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _deliveryNotes,
@@ -217,13 +229,14 @@ class _ListingSummary extends StatelessWidget {
         children: [
           Text(
             listing.resourceType,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+            style: const TextStyle(
+                fontWeight: FontWeight.w700, fontSize: 15),
           ),
           const SizedBox(height: 4),
           Text(
             '${listing.sellerName} • ${listing.broadLocation}',
-            style:
-                const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 6),
           Text(
@@ -253,13 +266,14 @@ class _DistanceHint extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.route_outlined, size: 18, color: AppColors.info),
+          const Icon(Icons.route_outlined,
+              size: 18, color: AppColors.info),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Pickup to delivery: ≈ ${km.toStringAsFixed(0)} km straight-line',
-              style:
-                  const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -286,7 +300,8 @@ class _AdminMediatedNote extends StatelessWidget {
           Expanded(
             child: Text(
               'Final transport is arranged by Admin once the seller accepts.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],

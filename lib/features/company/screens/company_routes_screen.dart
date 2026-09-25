@@ -8,6 +8,7 @@ import '../../../data/services/auth_service.dart';
 import '../../../domain/transport_estimator.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../orders/controllers/orders_controller.dart';
+import '../../orders/order_detail_screen.dart';
 
 /// Consolidated view of every active pickup route for this company.
 /// Orders are grouped by pickup county and ordered by pickup sequence
@@ -74,6 +75,7 @@ class CompanyRoutesScreen extends ConsumerWidget {
 class _SummaryBanner extends StatelessWidget {
   final int orderCount;
   final double totalKm;
+
   const _SummaryBanner({
     required this.orderCount,
     required this.totalKm,
@@ -99,13 +101,17 @@ class _SummaryBanner extends StatelessWidget {
                 Text(
                   '$orderCount active pickup${orderCount == 1 ? '' : 's'}',
                   style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w700),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Total straight-line run: ≈ ${totalKm.toStringAsFixed(0)} km',
                   style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary),
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -151,6 +157,7 @@ class _CountyHeader extends StatelessWidget {
 
 class _RouteStop extends StatelessWidget {
   final OrderModel order;
+
   const _RouteStop({required this.order});
 
   @override
@@ -160,114 +167,135 @@ class _RouteStop extends StatelessWidget {
       deliveryCounty: order.deliveryCounty,
     );
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  order.resourceType,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-              ),
-              Text(
-                '${order.quantity} ${order.unit}',
-                style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600),
-              ),
-            ],
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => OrderDetailScreen(orderId: order.id),
           ),
-          const SizedBox(height: 10),
-          Row(
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
+              Row(
                 children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
+                  Expanded(
+                    child: Text(
+                      order.resourceType,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                  Container(
-                    width: 2,
-                    height: 26,
-                    color: AppColors.border,
-                  ),
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: AppColors.secondary,
-                      shape: BoxShape.circle,
+                  Text(
+                    '${order.quantity} ${order.unit}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pickup: ${order.pickupBroadLocation}',
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w600),
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      Container(
+                        width: 2,
+                        height: 26,
+                        color: AppColors.border,
+                      ),
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: AppColors.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pickup: ${order.pickupBroadLocation}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          'Deliver: ${order.deliveryBroadLocation}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Deliver: ${order.deliveryBroadLocation}',
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    '${km.toStringAsFixed(0)} km',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Text(
-                '${km.toStringAsFixed(0)} km',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    'from ${order.sellerName}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    order.state.label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: order.state == OrderState.paymentSecured
+                          ? AppColors.info
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                'from ${order.sellerName}',
-                style:
-                    const TextStyle(fontSize: 11, color: AppColors.textMuted),
-              ),
-              const Spacer(),
-              Text(
-                order.state.label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: order.state == OrderState.paymentSecured
-                      ? AppColors.info
-                      : AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

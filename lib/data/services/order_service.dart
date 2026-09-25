@@ -4,10 +4,11 @@ import '../../core/constants/enums.dart';
 import '../../core/utils/logger.dart';
 import '../../domain/order_state_machine.dart';
 import '../models/order_model.dart';
-import 'mock/mock_orders.dart';
+import 'seed/seed_orders.dart';
+import '../models/geo_location.dart';
 
 class OrderService extends StateNotifier<List<OrderModel>> {
-  OrderService() : super(List.of(MockOrders.all));
+  OrderService() : super(List.of(SeedOrders.all));
 
   static final _log = Logger.of('OrderService');
 
@@ -25,6 +26,50 @@ class OrderService extends StateNotifier<List<OrderModel>> {
       if (o.id == id) return o;
     }
     return null;
+  }
+
+  /// Return an order view appropriate for `viewerId`.
+  /// Only the buyer or seller should see precise coordinates.
+  OrderModel publicOrderForViewer(OrderModel order, String viewerId) {
+    if (viewerId == order.buyerId || viewerId == order.sellerId) return order;
+
+    final maskedPickup = GeoLocation(
+      county: order.pickupLocation.county,
+      subCounty: order.pickupLocation.subCounty,
+      area: order.pickupLocation.area,
+      lat: null,
+      lng: null,
+      source: LocationSource.selfReported,
+    );
+
+    final maskedDelivery = GeoLocation(
+      county: order.deliveryLocation.county,
+      subCounty: order.deliveryLocation.subCounty,
+      area: order.deliveryLocation.area,
+      lat: null,
+      lng: null,
+      source: LocationSource.selfReported,
+    );
+
+    return OrderModel(
+      id: order.id,
+      listingId: order.listingId,
+      resourceType: order.resourceType,
+      unit: order.unit,
+      buyerId: order.buyerId,
+      buyerName: order.buyerName,
+      sellerId: order.sellerId,
+      sellerName: order.sellerName,
+      quantity: order.quantity,
+      pricePerUnit: order.pricePerUnit,
+      state: order.state,
+      logisticsState: order.logisticsState,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      pickupLocation: maskedPickup,
+      deliveryLocation: maskedDelivery,
+      deliveryNotes: order.deliveryNotes,
+    );
   }
 
   /// Advance a single order to a specific state. Logistics sub-state is
@@ -71,12 +116,20 @@ class OrderService extends StateNotifier<List<OrderModel>> {
     required String sellerName,
     required double quantity,
     required double pricePerUnit,
-    required String pickupCounty,
-    required String pickupSubCounty,
-    required String pickupArea,
-    required String deliveryCounty,
-    required String deliverySubCounty,
-    required String deliveryArea,
+    GeoLocation? pickupLocation,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupSubCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupArea,
+    GeoLocation? deliveryLocation,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliveryCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliverySubCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? deliveryArea,
     String? deliveryNotes,
   }) {
     final now = DateTime.now();
@@ -94,9 +147,11 @@ class OrderService extends StateNotifier<List<OrderModel>> {
       state: OrderState.accepted,
       createdAt: now,
       updatedAt: now,
+      pickupLocation: pickupLocation,
       pickupCounty: pickupCounty,
       pickupSubCounty: pickupSubCounty,
       pickupArea: pickupArea,
+      deliveryLocation: deliveryLocation,
       deliveryCounty: deliveryCounty,
       deliverySubCounty: deliverySubCounty,
       deliveryArea: deliveryArea,

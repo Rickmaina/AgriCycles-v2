@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/enums.dart';
-import '../../../core/constants/kenya_locations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
+import '../../../features/buy_requests/screens/post_need_screen.dart';
+import '../../../shared/widgets/location_picker.dart';
 import '../controllers/pre_order_controller.dart';
 
 class CreatePreOrderScreen extends ConsumerStatefulWidget {
@@ -19,27 +20,74 @@ class CreatePreOrderScreen extends ConsumerStatefulWidget {
       _CreatePreOrderScreenState();
 }
 
+class _CompanyOnlyBlock extends StatelessWidget {
+  const _CompanyOnlyBlock();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Community order')),
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.lock_outline_rounded,
+                    size: 54, color: AppColors.warning),
+                const SizedBox(height: 16),
+                const Text(
+                  'Company accounts only',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Community pre-orders are restricted to verified company accounts. Please use the regular buy-request flow instead.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      height: 1.5),
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => const PostNeedScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.campaign_outlined),
+                  label: const Text('Open regular buy request flow'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _CreatePreOrderScreenState extends ConsumerState<CreatePreOrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _resourceType = TextEditingController();
   final _target = TextEditingController();
   final _price = TextEditingController();
   final _description = TextEditingController();
-  final _subCounty = TextEditingController();
-  final _area = TextEditingController();
   final _notes = TextEditingController();
 
   String _category = 'Crop residue';
   String _unit = 'tonnes';
-  String? _county;
+  LocationSelection? _location;
+  String? _locationError;
   int _deadlineDays = 14;
 
   static const _units = ['kg', 'tonnes', 'bags', 'litres'];
-  static const _categories = [
-    'Crop residue',
-    'Animal waste',
-    'By-product',
-  ];
+  static const _categories = ['Crop residue', 'Animal waste', 'By-product'];
 
   @override
   void dispose() {
@@ -47,14 +95,23 @@ class _CreatePreOrderScreenState extends ConsumerState<CreatePreOrderScreen> {
     _target.dispose();
     _price.dispose();
     _description.dispose();
-    _subCounty.dispose();
-    _area.dispose();
     _notes.dispose();
     super.dispose();
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final formOk = _formKey.currentState!.validate();
+    final locationOk = _location != null &&
+        _location!.county.isNotEmpty &&
+        _location!.subCounty.isNotEmpty;
+    if (!formOk || !locationOk) {
+      if (!locationOk) {
+        setState(
+            () => _locationError = 'Please select your county and sub-county.');
+      }
+      return;
+    }
+
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -70,9 +127,9 @@ class _CreatePreOrderScreenState extends ConsumerState<CreatePreOrderScreen> {
           description: _description.text.trim().isEmpty
               ? null
               : _description.text.trim(),
-          deliveryCounty: _county!,
-          deliverySubCounty: _subCounty.text.trim(),
-          deliveryArea: _area.text.trim(),
+          deliveryCounty: _location!.county,
+          deliverySubCounty: _location!.subCounty,
+          deliveryArea: _location!.ward,
           deliveryNotes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
           deadline: DateTime.now().add(Duration(days: _deadlineDays)),
         );
@@ -83,6 +140,16 @@ class _CreatePreOrderScreenState extends ConsumerState<CreatePreOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authProvider);
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (user.role != UserRole.company) {
+      return const _CompanyOnlyBlock();
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Community pre-order')),
       body: SafeArea(
@@ -225,31 +292,23 @@ class _CreatePreOrderScreenState extends ConsumerState<CreatePreOrderScreen> {
                 'Broad area is shown to contributors.',
                 style: TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _county,
-                decoration: const InputDecoration(labelText: 'County'),
-                items: KenyaLocations.counties
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setState(() => _county = v),
-                validator: Validators.county,
+              const SizedBox(height: 14),
+              LocationPicker(
+                initial: _location,
+                onChanged: (sel) => setState(() {
+                  _location = sel;
+                  _locationError = null;
+                }),
+                onValidationError: (msg) =>
+                    setState(() => _locationError = msg),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _subCounty,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Sub-county'),
-                validator: (v) =>
-                    Validators.requiredText(v, label: 'Sub-county'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _area,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Area / Village'),
-                validator: (v) => Validators.requiredText(v, label: 'Area'),
-              ),
+              if (_locationError != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _locationError!,
+                  style: const TextStyle(color: AppColors.danger, fontSize: 12),
+                ),
+              ],
               const SizedBox(height: 12),
               TextFormField(
                 controller: _notes,

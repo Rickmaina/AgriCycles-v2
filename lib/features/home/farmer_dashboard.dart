@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/role_theme.dart';
+import '../../core/utils/extensions.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/marketplace_service.dart';
+import '../buy_requests/screens/post_need_screen.dart';
+import '../community/screens/community_orders_list_screen.dart';
+import '../marketplace/create_listing_screen.dart';
 import 'controllers/shell_tab_controller.dart';
 import '../../shared/widgets/hero_action_card.dart';
 import '../../shared/widgets/section_header.dart';
@@ -41,23 +45,34 @@ class FarmerDashboard extends ConsumerWidget {
             icon: Icons.storefront_outlined,
             title: 'Trade',
           ),
-          const _ActionCard(
+          _ActionCard(
             theme: theme,
             actions: [
               _ActionData(
                 icon: Icons.add_box_outlined,
                 title: 'Sell a resource',
                 subtitle: 'List crop waste, manure, feed',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreateListingScreen(),
+                  ),
+                ),
               ),
               _ActionData(
                 icon: Icons.search,
                 title: 'Browse listings',
                 subtitle: 'See what buyers want nearby',
+                onTap: () => ref.read(shellTabProvider.notifier).goTo(1),
               ),
               _ActionData(
                 icon: Icons.campaign_outlined,
                 title: 'Post a need',
                 subtitle: 'Buy-first: state what you need',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const PostNeedScreen(),
+                  ),
+                ),
               ),
             ],
           ),
@@ -67,18 +82,25 @@ class FarmerDashboard extends ConsumerWidget {
             icon: Icons.groups_outlined,
             title: 'Community',
           ),
-          const _ActionCard(
+          _ActionCard(
             theme: theme,
             actions: [
               _ActionData(
                 icon: Icons.groups_outlined,
                 title: 'Join a community order',
                 subtitle: 'Pool resources with other farmers',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CommunityOrdersListScreen(),
+                  ),
+                ),
               ),
               _ActionData(
                 icon: Icons.map_outlined,
                 title: 'Route & pickup',
                 subtitle: 'Admin-managed logistics',
+                onTap: () => context.showSnack(
+                    'Pickup routing is managed from the admin queue.'),
               ),
             ],
           ),
@@ -242,10 +264,12 @@ class _ActionData {
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
   const _ActionData({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 }
 
@@ -258,7 +282,7 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: data.onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(

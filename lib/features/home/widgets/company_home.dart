@@ -9,6 +9,7 @@ import '../../../shared/widgets/priority_row.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../company/screens/company_routes_screen.dart';
 import '../../orders/controllers/orders_controller.dart';
+import '../../orders/order_detail_screen.dart';
 
 class CompanyHome extends ConsumerWidget {
   const CompanyHome({super.key});
@@ -90,6 +91,11 @@ class CompanyHome extends ConsumerWidget {
                       trailingValue:
                           '${o.quantity.toStringAsFixed(0)} ${o.unit}',
                       tone: _toneForState(o.state),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => OrderDetailScreen(orderId: o.id),
+                        ),
+                      ),
                     ),
                   ),
               ],

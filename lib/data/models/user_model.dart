@@ -8,10 +8,12 @@ class UserModel {
   final UserRole role;
   final FarmerType? farmerType;
   final String? cropDetails;
+  final String? farmScale;
   final String? county;
   final String? subCounty;
   final String? area;
   final VerificationStatus verificationStatus;
+  final double? averageRating;
 
   const UserModel({
     required this.id,
@@ -21,10 +23,12 @@ class UserModel {
     required this.role,
     this.farmerType,
     this.cropDetails,
+    this.farmScale,
     this.county,
     this.subCounty,
     this.area,
     this.verificationStatus = VerificationStatus.unverified,
+    this.averageRating,
   });
 
   UserModel copyWith({
@@ -34,10 +38,12 @@ class UserModel {
     UserRole? role,
     FarmerType? farmerType,
     String? cropDetails,
+    String? farmScale,
     String? county,
     String? subCounty,
     String? area,
     VerificationStatus? verificationStatus,
+    double? averageRating,
   }) {
     return UserModel(
       id: id,
@@ -47,10 +53,12 @@ class UserModel {
       role: role ?? this.role,
       farmerType: farmerType ?? this.farmerType,
       cropDetails: cropDetails ?? this.cropDetails,
+      farmScale: farmScale ?? this.farmScale,
       county: county ?? this.county,
       subCounty: subCounty ?? this.subCounty,
       area: area ?? this.area,
       verificationStatus: verificationStatus ?? this.verificationStatus,
+      averageRating: averageRating ?? this.averageRating,
     );
   }
 

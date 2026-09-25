@@ -1,4 +1,5 @@
 import '../../core/constants/enums.dart';
+import 'geo_location.dart';
 
 /// A buyer-defined aggregate order. Farmers commit quantities until
 /// the target is met, then it locks and moves through the standard
@@ -16,16 +17,14 @@ class PreOrderModel {
   final double offeredPricePerUnit;
   final String? description;
 
-  final String deliveryCounty;
-  final String deliverySubCounty;
-  final String deliveryArea;
+  final GeoLocation deliveryLocation;
   final String? deliveryNotes;
 
   final DateTime deadline;
   final DateTime createdAt;
   final PreOrderStatus status;
 
-  const PreOrderModel({
+  PreOrderModel({
     required this.id,
     required this.buyerId,
     required this.buyerName,
@@ -36,18 +35,27 @@ class PreOrderModel {
     required this.unit,
     required this.offeredPricePerUnit,
     this.description,
-    required this.deliveryCounty,
-    required this.deliverySubCounty,
-    required this.deliveryArea,
+    GeoLocation? deliveryLocation,
+    String? deliveryCounty,
+    String? deliverySubCounty,
+    String? deliveryArea,
     this.deliveryNotes,
     required this.deadline,
     required this.createdAt,
     this.status = PreOrderStatus.open,
-  });
+  }) : deliveryLocation = deliveryLocation ??
+            GeoLocation(
+              county: deliveryCounty ?? '',
+              subCounty: deliverySubCounty ?? '',
+              area: deliveryArea ?? '',
+              lat: null,
+              lng: null,
+              source: LocationSource.selfReported,
+            );
 
   double get totalBudget => targetQuantity * offeredPricePerUnit;
 
-  String get deliveryBroadLocation => '$deliveryArea, $deliverySubCounty';
+  String get deliveryBroadLocation => deliveryLocation.broadLocation;
 
   PreOrderModel copyWith({PreOrderStatus? status}) => PreOrderModel(
         id: id,
@@ -60,9 +68,7 @@ class PreOrderModel {
         unit: unit,
         offeredPricePerUnit: offeredPricePerUnit,
         description: description,
-        deliveryCounty: deliveryCounty,
-        deliverySubCounty: deliverySubCounty,
-        deliveryArea: deliveryArea,
+        deliveryLocation: deliveryLocation,
         deliveryNotes: deliveryNotes,
         deadline: deadline,
         createdAt: createdAt,

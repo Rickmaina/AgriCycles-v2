@@ -10,6 +10,7 @@ import '../../../shared/widgets/section_header.dart';
 import '../../disputes/controllers/dispute_controller.dart';
 import '../../orders/controllers/orders_controller.dart';
 import '../../admin/controllers/admin_controller.dart';
+import '../controllers/shell_tab_controller.dart';
 
 class AdminHome extends ConsumerWidget {
   const AdminHome({super.key});
@@ -97,6 +98,7 @@ class AdminHome extends ConsumerWidget {
                           '$openDisputeCount need${openDisputeCount == 1 ? "s" : ""} a decision',
                       trailingValue: '$openDisputeCount',
                       tone: PriorityTone.urgent,
+                      onTap: () => ref.read(shellTabProvider.notifier).goTo(4),
                     ),
                   ),
                 if (awaitingAssignment > 0)
@@ -110,6 +112,7 @@ class AdminHome extends ConsumerWidget {
                           '$awaitingAssignment order${awaitingAssignment == 1 ? "" : "s"} need a transporter',
                       trailingValue: '$awaitingAssignment',
                       tone: PriorityTone.attention,
+                      onTap: () => ref.read(shellTabProvider.notifier).goTo(3),
                     ),
                   ),
                 if (pendingVerifications.isNotEmpty)
@@ -122,6 +125,7 @@ class AdminHome extends ConsumerWidget {
                       subtitle: _verificationBreakdown(pendingVerifications),
                       trailingValue: '${pendingVerifications.length}',
                       tone: PriorityTone.info,
+                      onTap: () => ref.read(shellTabProvider.notifier).goTo(1),
                     ),
                   ),
               ],

@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/enums.dart';
-import '../../../core/constants/kenya_locations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/buy_request_offer_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
+import '../../../shared/widgets/location_picker.dart';
 import '../controllers/buy_request_controller.dart';
 
 class BuyRequestDetailScreen extends ConsumerWidget {
@@ -101,23 +101,30 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Text(
             request.resourceType as String,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+                fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
             'from ${request.buyerName}',
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: const TextStyle(
+                fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 14),
           _row('Needs', '${request.quantity} ${request.unit}'),
           const SizedBox(height: 6),
-          _row('Offering',
-              '${(request.offeredPricePerUnit as double).kes} / ${request.unit}'),
+          _row(
+            'Offering',
+            '${(request.offeredPricePerUnit as double).kes} / ${request.unit}',
+          ),
           const SizedBox(height: 6),
-          _row('Total budget', (request.totalBudget as double).kes, bold: true),
+          _row(
+            'Total budget',
+            (request.totalBudget as double).kes,
+            bold: true,
+          ),
           const Divider(height: 24, color: AppColors.border),
-          _row('Deliver to', '${request.deliveryBroadLocation}'),
+          _row('Deliver to', request.deliveryBroadLocation as String),
           if (request.description != null) ...[
             const SizedBox(height: 10),
             Container(
@@ -142,8 +149,8 @@ class _SummaryCard extends StatelessWidget {
     return Row(
       children: [
         Text(label,
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            style: const TextStyle(
+                fontSize: 13, color: AppColors.textSecondary)),
         const Spacer(),
         Flexible(
           child: Text(
@@ -179,7 +186,8 @@ class _EmptyOffers extends StatelessWidget {
           Expanded(
             child: Text(
               'No seller offers yet. Sellers are notified when you post.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -283,7 +291,9 @@ class _BuyerOfferCard extends ConsumerWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      ref.read(buyRequestControllerProvider).acceptOffer(offer);
+                      ref
+                          .read(buyRequestControllerProvider)
+                          .acceptOffer(offer);
                       context.showSnack(
                           'Offer accepted — seller will contact you');
                     },
@@ -308,13 +318,15 @@ class _BuyerOfferCard extends ConsumerWidget {
           width: 84,
           child: Text(
             label,
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textMuted),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -368,17 +380,17 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
   late final TextEditingController _quantity;
   late final TextEditingController _price;
   final _message = TextEditingController();
-  final _subCounty = TextEditingController();
-  final _area = TextEditingController();
-  String? _county;
+
+  LocationSelection? _location;
+  String? _locationError;
 
   @override
   void initState() {
     super.initState();
-    _quantity =
-        TextEditingController(text: widget.suggestedQty.toStringAsFixed(0));
-    _price =
-        TextEditingController(text: widget.suggestedPrice.toStringAsFixed(0));
+    _quantity = TextEditingController(
+        text: widget.suggestedQty.toStringAsFixed(0));
+    _price = TextEditingController(
+        text: widget.suggestedPrice.toStringAsFixed(0));
   }
 
   @override
@@ -386,13 +398,22 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
     _quantity.dispose();
     _price.dispose();
     _message.dispose();
-    _subCounty.dispose();
-    _area.dispose();
     super.dispose();
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final formOk = _formKey.currentState!.validate();
+    final locationOk = _location != null &&
+        _location!.county.isNotEmpty &&
+        _location!.subCounty.isNotEmpty;
+    if (!formOk || !locationOk) {
+      if (!locationOk) {
+        setState(() => _locationError =
+            'Please select your pickup county and sub-county.');
+      }
+      return;
+    }
+
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -405,10 +426,12 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
           sellerName: user.name,
           pricePerUnit: double.parse(_price.text.trim()),
           quantity: double.parse(_quantity.text.trim()),
-          pickupCounty: _county!,
-          pickupSubCounty: _subCounty.text.trim(),
-          pickupArea: _area.text.trim(),
-          message: _message.text.trim().isEmpty ? null : _message.text.trim(),
+          pickupCounty: _location!.county,
+          pickupSubCounty: _location!.subCounty,
+          pickupArea: _location!.ward,
+          message: _message.text.trim().isEmpty
+              ? null
+              : _message.text.trim(),
         );
 
     context.showSnack('Offer sent to buyer');
@@ -424,24 +447,30 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
         children: [
           TextFormField(
             controller: _quantity,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+              FilteringTextInputFormatter.allow(
+                  RegExp(r'^\d*\.?\d{0,2}')),
             ],
             decoration: InputDecoration(
                 labelText: 'Quantity you can supply (${widget.unit})'),
-            validator: (v) => Validators.positiveNumber(v, label: 'Quantity'),
+            validator: (v) =>
+                Validators.positiveNumber(v, label: 'Quantity'),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _price,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+              FilteringTextInputFormatter.allow(
+                  RegExp(r'^\d*\.?\d{0,2}')),
             ],
-            decoration:
-                const InputDecoration(labelText: 'Your price per unit (KES)'),
-            validator: (v) => Validators.positiveNumber(v, label: 'Price'),
+            decoration: const InputDecoration(
+                labelText: 'Your price per unit (KES)'),
+            validator: (v) =>
+                Validators.positiveNumber(v, label: 'Price'),
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -453,31 +482,29 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
             ),
           ),
           const SizedBox(height: 16),
-          const _SectionLabel('Your pickup point'),
+          const Text(
+            'Your pickup point',
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 10),
-          DropdownButtonFormField<String>(
-            initialValue: _county,
-            decoration: const InputDecoration(labelText: 'County'),
-            items: KenyaLocations.counties
-                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                .toList(),
-            onChanged: (v) => setState(() => _county = v),
-            validator: Validators.county,
+          LocationPicker(
+            initial: _location,
+            onChanged: (sel) => setState(() {
+              _location = sel;
+              _locationError = null;
+            }),
+            onValidationError: (msg) =>
+                setState(() => _locationError = msg),
           ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _subCounty,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Sub-county'),
-            validator: (v) => Validators.requiredText(v, label: 'Sub-county'),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _area,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Area / Village'),
-            validator: (v) => Validators.requiredText(v, label: 'Area'),
-          ),
+          if (_locationError != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _locationError!,
+              style: const TextStyle(
+                  color: AppColors.danger, fontSize: 12),
+            ),
+          ],
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: _submit,

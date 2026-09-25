@@ -7,6 +7,9 @@ import '../../../data/models/notification_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/notification_service.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../community/screens/community_order_detail_screen.dart';
+import '../../disputes/screens/dispute_detail_screen.dart';
+import '../../orders/order_detail_screen.dart';
 import '../controllers/notification_controller.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -44,12 +47,53 @@ class NotificationsScreen extends ConsumerWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (_, i) => _NotificationCard(
                 notification: list[i],
-                onTap: () => ref
-                    .read(notificationControllerProvider)
-                    .markRead(list[i].id),
+                onTap: () {
+                  ref.read(notificationControllerProvider).markRead(list[i].id);
+                  _handleNavigation(context, list[i]);
+                },
               ),
             ),
     );
+  }
+
+  void _handleNavigation(BuildContext context, NotificationModel notification) {
+    switch (notification.target) {
+      case NotificationTarget.order:
+        if (notification.targetId != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) =>
+                  OrderDetailScreen(orderId: notification.targetId!),
+            ),
+          );
+        }
+        break;
+      case NotificationTarget.dispute:
+        if (notification.targetId != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) =>
+                  DisputeDetailScreen(disputeId: notification.targetId!),
+            ),
+          );
+        }
+        break;
+      case NotificationTarget.preOrder:
+        if (notification.targetId != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => CommunityOrderDetailScreen(
+                  preOrderId: notification.targetId!),
+            ),
+          );
+        }
+        break;
+      case NotificationTarget.listing:
+      case NotificationTarget.offer:
+      case NotificationTarget.verification:
+      default:
+        break;
+    }
   }
 }
 

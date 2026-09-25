@@ -1,4 +1,5 @@
 import '../../core/constants/enums.dart';
+import 'geo_location.dart';
 
 class OfferModel {
   final String id;
@@ -10,14 +11,12 @@ class OfferModel {
   final double quantity;
   final double pricePerUnit;
   final String? message;
-  final String deliveryCounty;
-  final String deliverySubCounty;
-  final String deliveryArea;
+  final GeoLocation deliveryLocation;
   final String? deliveryNotes;
   final OfferStatus status;
   final DateTime createdAt;
 
-  const OfferModel({
+  OfferModel({
     required this.id,
     required this.listingId,
     required this.sellerId,
@@ -27,13 +26,27 @@ class OfferModel {
     required this.quantity,
     required this.pricePerUnit,
     this.message,
-    required this.deliveryCounty,
-    required this.deliverySubCounty,
-    required this.deliveryArea,
+    GeoLocation? deliveryLocation,
+    String? deliveryCounty,
+    String? deliverySubCounty,
+    String? deliveryArea,
     this.deliveryNotes,
     this.status = OfferStatus.pending,
     required this.createdAt,
-  });
+  }) : deliveryLocation = deliveryLocation ??
+            GeoLocation(
+              county: deliveryCounty ?? '',
+              subCounty: deliverySubCounty ?? '',
+              area: deliveryArea ?? '',
+              lat: null,
+              lng: null,
+              source: LocationSource.selfReported,
+            );
+
+  String get deliveryBroadLocation => deliveryLocation.broadLocation;
+  String get deliveryCounty => deliveryLocation.county;
+  String get deliverySubCounty => deliveryLocation.subCounty;
+  String get deliveryArea => deliveryLocation.area;
 
   OfferModel copyWith({OfferStatus? status}) => OfferModel(
         id: id,
@@ -45,9 +58,7 @@ class OfferModel {
         quantity: quantity,
         pricePerUnit: pricePerUnit,
         message: message,
-        deliveryCounty: deliveryCounty,
-        deliverySubCounty: deliverySubCounty,
-        deliveryArea: deliveryArea,
+        deliveryLocation: deliveryLocation,
         deliveryNotes: deliveryNotes,
         status: status ?? this.status,
         createdAt: createdAt,

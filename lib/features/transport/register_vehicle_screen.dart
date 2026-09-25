@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/enums.dart';
-import '../../core/constants/kenya_locations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/verification_request_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../domain/validators.dart';
+import '../../shared/widgets/location_picker.dart';
 import '../admin/controllers/admin_controller.dart';
 
 class RegisterVehicleScreen extends ConsumerStatefulWidget {
@@ -18,13 +18,16 @@ class RegisterVehicleScreen extends ConsumerStatefulWidget {
       _RegisterVehicleScreenState();
 }
 
-class _RegisterVehicleScreenState extends ConsumerState<RegisterVehicleScreen> {
+class _RegisterVehicleScreenState
+    extends ConsumerState<RegisterVehicleScreen> {
   final _formKey = GlobalKey<FormState>();
   final _owner = TextEditingController();
   final _plate = TextEditingController();
   final _makeModel = TextEditingController();
   final _capacity = TextEditingController();
-  String? _county;
+
+  LocationSelection? _location;
+  String? _locationError;
   bool _submitted = false;
 
   @override
@@ -37,7 +40,17 @@ class _RegisterVehicleScreenState extends ConsumerState<RegisterVehicleScreen> {
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final formOk = _formKey.currentState!.validate();
+    final locationOk = _location != null &&
+        _location!.county.isNotEmpty &&
+        _location!.subCounty.isNotEmpty;
+    if (!formOk || !locationOk) {
+      if (!locationOk) {
+        setState(() => _locationError =
+            'Please select your operating county and sub-county.');
+      }
+      return;
+    }
 
     final user = ref.read(authProvider);
     final applicant = user?.name ?? 'Transport partner';
@@ -52,7 +65,7 @@ class _RegisterVehicleScreenState extends ConsumerState<RegisterVehicleScreen> {
       plateNumber: plate,
       extraInfo:
           '${_makeModel.text.trim()}, ${_capacity.text.trim()}t capacity',
-      county: _county!,
+      county: _location!.county,
       submittedAt: DateTime.now(),
     );
 
@@ -80,7 +93,8 @@ class _RegisterVehicleScreenState extends ConsumerState<RegisterVehicleScreen> {
               const SizedBox(height: 16),
               const Text(
                 'Awaiting Admin review',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -126,7 +140,8 @@ class _RegisterVehicleScreenState extends ConsumerState<RegisterVehicleScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Registered owner name',
                   ),
-                  validator: (v) => Validators.requiredText(v, label: 'Owner'),
+                  validator: (v) =>
+                      Validators.requiredText(v, label: 'Owner'),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -163,17 +178,32 @@ class _RegisterVehicleScreenState extends ConsumerState<RegisterVehicleScreen> {
                   validator: (v) =>
                       Validators.positiveNumber(v, label: 'Capacity'),
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _county,
-                  decoration:
-                      const InputDecoration(labelText: 'Operating county'),
-                  items: KenyaLocations.counties
-                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _county = v),
-                  validator: Validators.county,
+                const SizedBox(height: 16),
+                const Text(
+                  'Operating location',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
+                const SizedBox(height: 10),
+                LocationPicker(
+                  initial: _location,
+                  onChanged: (sel) => setState(() {
+                    _location = sel;
+                    _locationError = null;
+                  }),
+                  onValidationError: (msg) =>
+                      setState(() => _locationError = msg),
+                ),
+                if (_locationError != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    _locationError!,
+                    style: const TextStyle(
+                        color: AppColors.danger, fontSize: 12),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 const _WarningNote(),
                 const SizedBox(height: 24),
@@ -203,12 +233,14 @@ class _WarningNote extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          Icon(Icons.warning_amber, size: 18, color: AppColors.warning),
+          Icon(Icons.warning_amber,
+              size: 18, color: AppColors.warning),
           SizedBox(width: 8),
           Expanded(
             child: Text(
               'You will need to show the e-Logbook QR code or provide a Copy of Records when Admin requests it.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary),
             ),
           ),
         ],

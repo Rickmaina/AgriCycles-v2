@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/role_theme.dart';
 import '../../data/services/auth_service.dart';
 import '../admin/logistics_queue_screen.dart';
+import '../admin/pending_review_queue_screen.dart';
 import '../admin/verification_queue_screen.dart';
 import '../buy_requests/screens/post_need_screen.dart';
 import '../community/screens/create_pre_order_screen.dart';
@@ -61,6 +62,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ),
         iconTheme: IconThemeData(color: roleTheme.appBarForeground),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Help',
+            onPressed: () => context.go(AppRoutes.help),
+          ),
           Consumer(
             builder: (context, ref, _) {
               final unread = ref.watch(myUnreadCountProvider(user.id));
@@ -147,6 +153,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 
   void _showMarketActions(BuildContext context) {
+    final user = ref.read(authProvider);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
@@ -195,20 +203,21 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                 );
               },
             ),
-            ListTile(
-              leading:
-                  const Icon(Icons.groups_outlined, color: AppColors.primary),
-              title: const Text('Start community order'),
-              subtitle: const Text('Aggregate across many farms'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const CreatePreOrderScreen(),
-                  ),
-                );
-              },
-            ),
+            if (user != null && user.role == UserRole.company)
+              ListTile(
+                leading:
+                    const Icon(Icons.groups_outlined, color: AppColors.primary),
+                title: const Text('Start community order'),
+                subtitle: const Text('Aggregate across many farms'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CreatePreOrderScreen(),
+                    ),
+                  );
+                },
+              ),
             const SizedBox(height: 12),
           ],
         ),
@@ -247,14 +256,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           case 1:
             return const VerificationQueueScreen();
           case 2:
-            return const LogisticsQueueScreen();
+            return const PendingReviewQueueScreen();
           case 3:
-            return const AdminDisputesScreen();
+            return const LogisticsQueueScreen();
           case 4:
+            return const AdminDisputesScreen();
+          case 5:
             return const ProfileScreen();
         }
       case UserRole.vet:
-        return const _VetPlaceholder();
+        return const _VetComingSoonView();
     }
     return const SizedBox.shrink();
   }
@@ -280,6 +291,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           _NavItem(Icons.home_outlined, Icons.home, 'Home'),
           _NavItem(Icons.verified_user_outlined, Icons.verified_user, 'Verify'),
           _NavItem(
+              Icons.pending_actions_outlined, Icons.pending_actions, 'Review'),
+          _NavItem(
               Icons.local_shipping_outlined, Icons.local_shipping, 'Logistics'),
           _NavItem(Icons.gavel_outlined, Icons.gavel, 'Disputes'),
           _NavItem(Icons.person_outline, Icons.person, 'Profile'),
@@ -299,8 +312,8 @@ class _NavItem {
   const _NavItem(this.icon, this.activeIcon, this.label);
 }
 
-class _VetPlaceholder extends StatelessWidget {
-  const _VetPlaceholder();
+class _VetComingSoonView extends StatelessWidget {
+  const _VetComingSoonView();
 
   @override
   Widget build(BuildContext context) {

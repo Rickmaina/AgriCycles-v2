@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/enums.dart';
-import '../../../core/constants/kenya_locations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/community_contribution_model.dart';
 import '../../../data/models/pre_order_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
+import '../../../shared/widgets/location_picker.dart';
 import '../controllers/pre_order_controller.dart';
 
 class CommunityOrderDetailScreen extends ConsumerWidget {
@@ -48,6 +48,7 @@ class CommunityOrderDetailScreen extends ConsumerWidget {
             progress: progress,
           ),
           const SizedBox(height: 20),
+
           if (isBuyer && contributions.isNotEmpty) ...[
             const _SectionLabel('Contributions & route'),
             const SizedBox(height: 10),
@@ -64,7 +65,8 @@ class CommunityOrderDetailScreen extends ConsumerWidget {
                 child: _ContributionCard(
                   contribution: c,
                   unit: preOrder.unit,
-                  canReview: c.status == ContributionStatus.committed,
+                  canReview:
+                      c.status == ContributionStatus.committed,
                 ),
               ),
             ),
@@ -85,19 +87,22 @@ class CommunityOrderDetailScreen extends ConsumerWidget {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.lock_outline, size: 18, color: AppColors.info),
+                  Icon(Icons.lock_outline,
+                      size: 18, color: AppColors.info),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Target reached — contributions are closed.',
                       style: TextStyle(
-                          fontSize: 13, color: AppColors.textSecondary),
+                          fontSize: 13,
+                          color: AppColors.textSecondary),
                     ),
                   ),
                 ],
               ),
             ),
           ],
+
           if (isBuyer && contributions.isEmpty) ...[
             const _SectionLabel('Contributions'),
             const SizedBox(height: 10),
@@ -109,13 +114,15 @@ class CommunityOrderDetailScreen extends ConsumerWidget {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.hourglass_empty, color: AppColors.textMuted),
+                  Icon(Icons.hourglass_empty,
+                      color: AppColors.textMuted),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'No contributions yet. Eligible farmers have been notified.',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary),
+                          fontSize: 12,
+                          color: AppColors.textSecondary),
                     ),
                   ),
                 ],
@@ -183,8 +190,8 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'from ${preOrder.buyerName}',
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: const TextStyle(
+                fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
           ClipRRect(
@@ -193,7 +200,8 @@ class _SummaryCard extends StatelessWidget {
               value: progress,
               minHeight: 10,
               backgroundColor: AppColors.surfaceAlt,
-              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+              valueColor:
+                  const AlwaysStoppedAnimation(AppColors.primary),
             ),
           ),
           const SizedBox(height: 8),
@@ -201,8 +209,8 @@ class _SummaryCard extends StatelessWidget {
             children: [
               Text(
                 '${committed.toStringAsFixed(1)} / ${preOrder.targetQuantity} ${preOrder.unit}',
-                style:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600),
               ),
               const Spacer(),
               Text(
@@ -215,7 +223,8 @@ class _SummaryCard extends StatelessWidget {
             ],
           ),
           const Divider(height: 24, color: AppColors.border),
-          _row('Price per ${preOrder.unit}', preOrder.offeredPricePerUnit.kes),
+          _row('Price per ${preOrder.unit}',
+              preOrder.offeredPricePerUnit.kes),
           const SizedBox(height: 6),
           _row('Total budget', preOrder.totalBudget.kes, bold: true),
           const SizedBox(height: 6),
@@ -246,8 +255,8 @@ class _SummaryCard extends StatelessWidget {
     return Row(
       children: [
         Text(label,
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            style: const TextStyle(
+                fontSize: 13, color: AppColors.textSecondary)),
         const Spacer(),
         Flexible(
           child: Text(
@@ -307,7 +316,8 @@ class _RouteCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.info.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.info.withValues(alpha: 0.20)),
+        border: Border.all(
+            color: AppColors.info.withValues(alpha: 0.20)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,7 +328,8 @@ class _RouteCard extends StatelessWidget {
               SizedBox(width: 8),
               Text(
                 'Pickup route across farms',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -326,7 +337,8 @@ class _RouteCard extends StatelessWidget {
           if (confirmed.isEmpty)
             const Text(
               'Confirm contributions to see the route.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary),
             )
           else
             ...List.generate(confirmed.length, (i) {
@@ -359,7 +371,8 @@ class _RouteCard extends StatelessWidget {
                           Container(
                             width: 2,
                             height: 22,
-                            color: AppColors.info.withValues(alpha: 0.3),
+                            color:
+                                AppColors.info.withValues(alpha: 0.3),
                           ),
                       ],
                     ),
@@ -373,17 +386,20 @@ class _RouteCard extends StatelessWidget {
                             Text(
                               c.farmerName,
                               style: const TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w700),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700),
                             ),
                             Text(
                               c.pickupBroadLocation,
                               style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textSecondary),
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary),
                             ),
                             Text(
                               '${c.effectiveQuantity} $unit',
                               style: const TextStyle(
-                                  fontSize: 11, color: AppColors.textMuted),
+                                  fontSize: 11,
+                                  color: AppColors.textMuted),
                             ),
                           ],
                         ),
@@ -419,11 +435,14 @@ class _ContributionCard extends ConsumerWidget {
         title: const Text('Confirm quantity'),
         content: TextField(
           controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          keyboardType:
+              const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            FilteringTextInputFormatter.allow(
+                RegExp(r'^\d*\.?\d{0,2}')),
           ],
-          decoration: InputDecoration(labelText: 'Accepted quantity ($unit)'),
+          decoration: InputDecoration(
+              labelText: 'Accepted quantity ($unit)'),
         ),
         actions: [
           TextButton(
@@ -431,8 +450,8 @@ class _ContributionCard extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () =>
-                Navigator.pop(context, double.tryParse(controller.text.trim())),
+            onPressed: () => Navigator.pop(
+                context, double.tryParse(controller.text.trim())),
             child: const Text('Confirm'),
           ),
         ],
@@ -472,8 +491,8 @@ class _ContributionCard extends ConsumerWidget {
           const SizedBox(height: 6),
           Text(
             'Committed: ${contribution.committedQuantity} $unit',
-            style:
-                const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary),
           ),
           if (contribution.acceptedQuantity != null) ...[
             const SizedBox(height: 2),
@@ -488,8 +507,8 @@ class _ContributionCard extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             'Pickup: ${contribution.pickupBroadLocation}',
-            style:
-                const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary),
           ),
           if (canReview) ...[
             const SizedBox(height: 10),
@@ -567,20 +586,29 @@ class _ContributeForm extends ConsumerStatefulWidget {
 class _ContributeFormState extends ConsumerState<_ContributeForm> {
   final _formKey = GlobalKey<FormState>();
   final _quantity = TextEditingController();
-  final _subCounty = TextEditingController();
-  final _area = TextEditingController();
-  String? _county;
+
+  LocationSelection? _location;
+  String? _locationError;
 
   @override
   void dispose() {
     _quantity.dispose();
-    _subCounty.dispose();
-    _area.dispose();
     super.dispose();
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final formOk = _formKey.currentState!.validate();
+    final locationOk = _location != null &&
+        _location!.county.isNotEmpty &&
+        _location!.subCounty.isNotEmpty;
+    if (!formOk || !locationOk) {
+      if (!locationOk) {
+        setState(() => _locationError =
+            'Please select your pickup county and sub-county.');
+      }
+      return;
+    }
+
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -589,9 +617,9 @@ class _ContributeFormState extends ConsumerState<_ContributeForm> {
           farmerId: user.id,
           farmerName: user.name,
           quantity: double.parse(_quantity.text.trim()),
-          pickupCounty: _county!,
-          pickupSubCounty: _subCounty.text.trim(),
-          pickupArea: _area.text.trim(),
+          pickupCounty: _location!.county,
+          pickupSubCounty: _location!.subCounty,
+          pickupArea: _location!.ward,
         );
 
     context.showSnack('Contribution submitted');
@@ -621,43 +649,41 @@ class _ContributeFormState extends ConsumerState<_ContributeForm> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _quantity,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+              FilteringTextInputFormatter.allow(
+                  RegExp(r'^\d*\.?\d{0,2}')),
             ],
             decoration: InputDecoration(
                 labelText: 'Your quantity (${widget.preOrder.unit})'),
-            validator: (v) => Validators.positiveNumber(v, label: 'Quantity'),
+            validator: (v) =>
+                Validators.positiveNumber(v, label: 'Quantity'),
           ),
           const SizedBox(height: 16),
           const Text(
             'Your pickup point',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            style:
+                TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
-          DropdownButtonFormField<String>(
-            initialValue: _county,
-            decoration: const InputDecoration(labelText: 'County'),
-            items: KenyaLocations.counties
-                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                .toList(),
-            onChanged: (v) => setState(() => _county = v),
-            validator: Validators.county,
+          LocationPicker(
+            initial: _location,
+            onChanged: (sel) => setState(() {
+              _location = sel;
+              _locationError = null;
+            }),
+            onValidationError: (msg) =>
+                setState(() => _locationError = msg),
           ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _subCounty,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Sub-county'),
-            validator: (v) => Validators.requiredText(v, label: 'Sub-county'),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _area,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Area / Village'),
-            validator: (v) => Validators.requiredText(v, label: 'Area'),
-          ),
+          if (_locationError != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _locationError!,
+              style: const TextStyle(
+                  color: AppColors.danger, fontSize: 12),
+            ),
+          ],
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: _submit,

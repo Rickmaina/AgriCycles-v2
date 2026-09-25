@@ -70,6 +70,16 @@ class NotificationController {
     );
   }
 
+  Future<void> registerPushToken({
+    required String userId,
+    required String token,
+  }) async {
+    // No notification SDK is currently installed in this repo, so this remains a
+    // local-only placeholder until the platform choice is confirmed.
+    // The app keeps the userId + token in memory only for now.
+    if (userId.isEmpty || token.isEmpty) return;
+  }
+
   void markRead(String id) => _svc.markRead(id);
 
   void markAllRead(String userId) => _svc.markAllRead(userId);

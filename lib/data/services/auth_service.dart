@@ -4,7 +4,7 @@ import '../../core/constants/enums.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/utils/logger.dart';
 import '../models/user_model.dart';
-import 'mock/mock_data.dart';
+import 'seed/seed_data.dart';
 
 /// Frontend-only auth. Holds the current user in memory.
 /// Swap this class for an HTTP-backed implementation later without
@@ -14,14 +14,15 @@ class AuthService extends StateNotifier<UserModel?> {
 
   static final _log = Logger.of('AuthService');
 
-  /// Fake login for demo. Throws [AuthFailure] if the role has no seed user.
+  /// Sign in using the seeded local account for the requested role.
+  /// Throws [AuthFailure] if no seeded user exists for that role.
   Future<UserModel> loginAsRole(UserRole role) async {
     _log.info('login attempt role=${role.name}');
     await Future.delayed(const Duration(milliseconds: 250));
-    final user = MockData.findByRole(role);
+    final user = SeedData.findByRole(role);
     if (user == null) {
       _log.warn('no seed user for role=${role.name}');
-      throw AuthFailure('No demo account for ${role.label}');
+      throw AuthFailure('No seeded account for ${role.label}');
     }
     state = user;
     _log.info('logged in as ${user.name}');
@@ -55,10 +56,15 @@ class AuthService extends StateNotifier<UserModel?> {
   void completeOnboarding({
     required FarmerType farmerType,
     String? cropDetails,
+    String? farmScale,
   }) {
     final u = state;
     if (u == null) return;
-    state = u.copyWith(farmerType: farmerType, cropDetails: cropDetails);
+    state = u.copyWith(
+      farmerType: farmerType,
+      cropDetails: cropDetails,
+      farmScale: farmScale,
+    );
   }
 
   void logout() {

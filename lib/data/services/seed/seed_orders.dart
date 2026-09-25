@@ -1,8 +1,9 @@
 import '../../../core/constants/enums.dart';
 import '../../models/order_model.dart';
+import '../../models/geo_location.dart';
 
-class MockOrders {
-  MockOrders._();
+class SeedOrders {
+  SeedOrders._();
 
   static final DateTime _now = DateTime.now();
 
@@ -21,12 +22,22 @@ class MockOrders {
       state: OrderState.negotiation,
       createdAt: _now.subtract(const Duration(days: 1)),
       updatedAt: _now.subtract(const Duration(hours: 3)),
-      pickupCounty: 'Kakamega',
-      pickupSubCounty: 'Mumias',
-      pickupArea: 'Bukhungu',
-      deliveryCounty: 'Kiambu',
-      deliverySubCounty: 'Ruiru',
-      deliveryArea: 'Kamakis',
+      pickupLocation: GeoLocation(
+        county: 'Kakamega',
+        subCounty: 'Mumias',
+        area: 'Bukhungu',
+        lat: -0.2820,
+        lng: 34.7519,
+        source: LocationSource.deviceCaptured,
+      ),
+      deliveryLocation: GeoLocation(
+        county: 'Kiambu',
+        subCounty: 'Ruiru',
+        area: 'Kamakis',
+        lat: -1.1500,
+        lng: 36.9000,
+        source: LocationSource.selfReported,
+      ),
       deliveryNotes: 'Gate opposite Kamakis shopping centre',
     ),
     OrderModel(
@@ -67,12 +78,22 @@ class MockOrders {
       logisticsState: LogisticsState.delivered,
       createdAt: _now.subtract(const Duration(days: 10)),
       updatedAt: _now.subtract(const Duration(days: 5)),
-      pickupCounty: 'Kiambu',
-      pickupSubCounty: 'Ruiru',
-      pickupArea: 'Kamakis',
-      deliveryCounty: 'Nakuru',
-      deliverySubCounty: 'Naivasha',
-      deliveryArea: 'Industrial Area',
+      pickupLocation: GeoLocation(
+        county: 'Kiambu',
+        subCounty: 'Ruiru',
+        area: 'Kamakis',
+        lat: -1.1500,
+        lng: 36.9000,
+        source: LocationSource.deviceCaptured,
+      ),
+      deliveryLocation: GeoLocation(
+        county: 'Nakuru',
+        subCounty: 'Naivasha',
+        area: 'Industrial Area',
+        lat: -0.3031,
+        lng: 36.0800,
+        source: LocationSource.selfReported,
+      ),
     ),
     OrderModel(
       id: 'ord4',

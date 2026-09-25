@@ -1,4 +1,5 @@
 import '../../core/constants/enums.dart';
+import 'geo_location.dart';
 
 class OrderModel {
   final String id;
@@ -20,15 +21,11 @@ class OrderModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  final String pickupCounty;
-  final String pickupSubCounty;
-  final String pickupArea;
-  final String deliveryCounty;
-  final String deliverySubCounty;
-  final String deliveryArea;
+  final GeoLocation pickupLocation;
+  final GeoLocation deliveryLocation;
   final String? deliveryNotes;
 
-  const OrderModel({
+  OrderModel({
     required this.id,
     required this.listingId,
     required this.resourceType,
@@ -43,17 +40,43 @@ class OrderModel {
     this.logisticsState,
     required this.createdAt,
     required this.updatedAt,
-    required this.pickupCounty,
-    required this.pickupSubCounty,
-    required this.pickupArea,
-    required this.deliveryCounty,
-    required this.deliverySubCounty,
-    required this.deliveryArea,
+    GeoLocation? pickupLocation,
+    String? pickupCounty,
+    String? pickupSubCounty,
+    String? pickupArea,
+    GeoLocation? deliveryLocation,
+    String? deliveryCounty,
+    String? deliverySubCounty,
+    String? deliveryArea,
     this.deliveryNotes,
-  });
+  })  : pickupLocation = pickupLocation ??
+            GeoLocation(
+              county: pickupCounty ?? '',
+              subCounty: pickupSubCounty ?? '',
+              area: pickupArea ?? '',
+              lat: null,
+              lng: null,
+              source: LocationSource.selfReported,
+            ),
+        deliveryLocation = deliveryLocation ??
+            GeoLocation(
+              county: deliveryCounty ?? '',
+              subCounty: deliverySubCounty ?? '',
+              area: deliveryArea ?? '',
+              lat: null,
+              lng: null,
+              source: LocationSource.selfReported,
+            );
 
-  String get pickupBroadLocation => '$pickupArea, $pickupSubCounty';
-  String get deliveryBroadLocation => '$deliveryArea, $deliverySubCounty';
+  String get pickupBroadLocation => pickupLocation.broadLocation;
+  String get deliveryBroadLocation => deliveryLocation.broadLocation;
+
+  String get pickupCounty => pickupLocation.county;
+  String get pickupSubCounty => pickupLocation.subCounty;
+  String get pickupArea => pickupLocation.area;
+  String get deliveryCounty => deliveryLocation.county;
+  String get deliverySubCounty => deliveryLocation.subCounty;
+  String get deliveryArea => deliveryLocation.area;
 
   OrderModel copyWith({
     OrderState? state,
@@ -75,12 +98,12 @@ class OrderModel {
       logisticsState: logisticsState ?? this.logisticsState,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      pickupCounty: pickupCounty,
-      pickupSubCounty: pickupSubCounty,
-      pickupArea: pickupArea,
-      deliveryCounty: deliveryCounty,
-      deliverySubCounty: deliverySubCounty,
-      deliveryArea: deliveryArea,
+      pickupCounty: pickupLocation.county,
+      pickupSubCounty: pickupLocation.subCounty,
+      pickupArea: pickupLocation.area,
+      deliveryCounty: deliveryLocation.county,
+      deliverySubCounty: deliveryLocation.subCounty,
+      deliveryArea: deliveryLocation.area,
       deliveryNotes: deliveryNotes,
     );
   }

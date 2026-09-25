@@ -3,6 +3,7 @@ import '../../core/constants/enums.dart';
 
 import '../models/community_contribution_model.dart';
 import '../models/pre_order_model.dart';
+import '../models/geo_location.dart';
 
 class PreOrderState {
   final List<PreOrderModel> preOrders;
@@ -90,9 +91,13 @@ class PreOrderService extends StateNotifier<PreOrderState> {
     required String farmerId,
     required String farmerName,
     required double quantity,
-    required String pickupCounty,
-    required String pickupSubCounty,
-    required String pickupArea,
+    GeoLocation? pickupLocation,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupSubCounty,
+    @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
+    String? pickupArea,
   }) {
     final contribution = CommunityContributionModel(
       id: 'cc${DateTime.now().millisecondsSinceEpoch}',
@@ -101,6 +106,7 @@ class PreOrderService extends StateNotifier<PreOrderState> {
       farmerName: farmerName,
       committedQuantity: quantity,
       pricePerUnit: preOrder.offeredPricePerUnit,
+      pickupLocation: pickupLocation,
       pickupCounty: pickupCounty,
       pickupSubCounty: pickupSubCounty,
       pickupArea: pickupArea,

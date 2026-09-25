@@ -164,7 +164,33 @@ extension OfferStatusLabel on OfferStatus {
   }
 }
 
-enum ListingStatus { active, paused, sold, expired }
+enum ListingStatus {
+  active,
+  paused,
+  sold,
+  expired,
+  pendingReview,
+  rejected,
+}
+
+extension ListingStatusLabel on ListingStatus {
+  String get label {
+    switch (this) {
+      case ListingStatus.active:
+        return 'Active';
+      case ListingStatus.paused:
+        return 'Paused';
+      case ListingStatus.sold:
+        return 'Sold';
+      case ListingStatus.expired:
+        return 'Expired';
+      case ListingStatus.pendingReview:
+        return 'Pending review';
+      case ListingStatus.rejected:
+        return 'Rejected';
+    }
+  }
+}
 
 enum BuyRequestStatus { open, matched, closed, expired }
 

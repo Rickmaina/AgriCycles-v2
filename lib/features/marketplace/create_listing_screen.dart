@@ -3,12 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/constants/kenya_locations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/extensions.dart';
 import '../../data/services/auth_service.dart';
-import '../../data/services/mock/mock_listings.dart';
 import '../../domain/validators.dart';
+import '../../shared/widgets/location_picker.dart';
 import 'controllers/marketplace_controller.dart';
 
 class CreateListingScreen extends ConsumerStatefulWidget {
@@ -25,14 +24,18 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final _quantity = TextEditingController();
   final _price = TextEditingController();
   final _description = TextEditingController();
-  final _subCounty = TextEditingController();
-  final _area = TextEditingController();
 
   String _category = 'Crop residue';
   String _unit = 'tonnes';
-  String? _county;
+  LocationSelection? _location;
+  String? _locationError;
 
   static const _units = ['kg', 'tonnes', 'bags', 'litres'];
+  static const _categories = [
+    'Crop residue',
+    'Animal waste',
+    'By-product',
+  ];
 
   @override
   void initState() {
@@ -49,8 +52,6 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     _quantity.dispose();
     _price.dispose();
     _description.dispose();
-    _subCounty.dispose();
-    _area.dispose();
     super.dispose();
   }
 
@@ -61,17 +62,28 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   }
 
   Future<void> _confirmAndSubmit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formOk = _formKey.currentState!.validate();
+    final locationOk = _location != null &&
+        _location!.county.isNotEmpty &&
+        _location!.subCounty.isNotEmpty;
+    if (!formOk || !locationOk) {
+      if (!locationOk) {
+        setState(
+            () => _locationError = 'Please select your county and sub-county.');
+      }
+      return;
+    }
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Publish listing?'),
+        title: const Text('Submit for review?'),
         content: Text(
           '${_resourceType.text.trim()} • '
           '${_quantity.text.trim()} $_unit\n'
           'KES ${_price.text.trim()} / $_unit  •  '
-          'Total ${_totalValue.kes}',
+          'Total ${_totalValue.kes}\n\n'
+          'Your listing will be reviewed before it appears in the marketplace.',
         ),
         actions: [
           TextButton(
@@ -80,7 +92,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Publish'),
+            child: const Text('Submit for review'),
           ),
         ],
       ),
@@ -102,14 +114,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
           description: _description.text.trim().isEmpty
               ? null
               : _description.text.trim(),
-          county: _county!,
-          subCounty: _subCounty.text.trim(),
-          area: _area.text.trim(),
+          county: _location!.county,
+          subCounty: _location!.subCounty,
+          area: _location!.ward,
           sellerVerification: user.verificationStatus,
         );
 
     if (!mounted) return;
-    context.showSnack('Listing published');
+    context.showSnack('Listing submitted for review');
     context.pop();
   }
 
@@ -147,8 +159,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               DropdownButtonFormField<String>(
                 initialValue: _category,
                 decoration: const InputDecoration(labelText: 'Category'),
-                items: MockListings.categories
-                    .where((c) => c != 'All')
+                items: _categories
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (v) => setState(() => _category = v!),
@@ -233,31 +244,26 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _county,
-                decoration: const InputDecoration(labelText: 'County'),
-                items: KenyaLocations.counties
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setState(() => _county = v),
-                validator: Validators.county,
+              const SizedBox(height: 14),
+              LocationPicker(
+                initial: _location,
+                onChanged: (sel) => setState(() {
+                  _location = sel;
+                  _locationError = null;
+                }),
+                onValidationError: (msg) =>
+                    setState(() => _locationError = msg),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _subCounty,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Sub-county'),
-                validator: (v) =>
-                    Validators.requiredText(v, label: 'Sub-county'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _area,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Area / Village'),
-                validator: (v) => Validators.requiredText(v, label: 'Area'),
-              ),
+              if (_locationError != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _locationError!,
+                  style: const TextStyle(
+                    color: AppColors.danger,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
               const SizedBox(height: 32),
               ElevatedButton.icon(
                 onPressed: _confirmAndSubmit,

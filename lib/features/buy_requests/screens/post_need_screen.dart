@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/kenya_locations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
+import '../../../shared/widgets/location_picker.dart';
 import '../controllers/buy_request_controller.dart';
 
 class PostNeedScreen extends ConsumerStatefulWidget {
@@ -23,13 +23,11 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
   final _quantity = TextEditingController();
   final _price = TextEditingController();
   final _description = TextEditingController();
-  final _subCounty = TextEditingController();
-  final _area = TextEditingController();
-  final _notes = TextEditingController();
 
   String _category = 'Crop residue';
   String _unit = 'tonnes';
-  String? _county;
+  LocationSelection? _location;
+  String? _locationError;
 
   static const _units = ['kg', 'tonnes', 'bags', 'litres'];
   static const _categories = [
@@ -44,14 +42,22 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
     _quantity.dispose();
     _price.dispose();
     _description.dispose();
-    _subCounty.dispose();
-    _area.dispose();
-    _notes.dispose();
     super.dispose();
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final formOk = _formKey.currentState!.validate();
+    final locationOk = _location != null &&
+        _location!.county.isNotEmpty &&
+        _location!.subCounty.isNotEmpty;
+    if (!formOk || !locationOk) {
+      if (!locationOk) {
+        setState(() => _locationError =
+            'Please select your county and sub-county.');
+      }
+      return;
+    }
+
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -66,10 +72,9 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
           description: _description.text.trim().isEmpty
               ? null
               : _description.text.trim(),
-          deliveryCounty: _county!,
-          deliverySubCounty: _subCounty.text.trim(),
-          deliveryArea: _area.text.trim(),
-          deliveryNotes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+          deliveryCounty: _location!.county,
+          deliverySubCounty: _location!.subCounty,
+          deliveryArea: _location!.ward,
         );
 
     context.showSnack('Buy request posted');
@@ -95,18 +100,21 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
                   labelText: 'Resource name',
                   hintText: 'e.g. Maize stalks, Cow manure',
                 ),
-                validator: (v) => Validators.requiredText(v, label: 'Resource'),
+                validator: (v) =>
+                    Validators.requiredText(v, label: 'Resource'),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: _category,
                 decoration: const InputDecoration(labelText: 'Category'),
                 items: _categories
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .map((c) =>
+                        DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (v) => setState(() => _category = v!),
               ),
               const SizedBox(height: 24),
+
               const _SectionLabel('How much & at what price?'),
               const SizedBox(height: 10),
               Row(
@@ -116,13 +124,14 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
                     flex: 3,
                     child: TextFormField(
                       controller: _quantity,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d{0,2}')),
                       ],
-                      decoration: const InputDecoration(labelText: 'Quantity'),
+                      decoration:
+                          const InputDecoration(labelText: 'Quantity'),
                       validator: (v) => Validators.positiveNumber(v,
                           label: 'Quantity', max: 100000),
                     ),
@@ -132,10 +141,11 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
                     flex: 2,
                     child: DropdownButtonFormField<String>(
                       initialValue: _unit,
-                      decoration: const InputDecoration(labelText: 'Unit'),
+                      decoration:
+                          const InputDecoration(labelText: 'Unit'),
                       items: _units
-                          .map(
-                              (u) => DropdownMenuItem(value: u, child: Text(u)))
+                          .map((u) =>
+                              DropdownMenuItem(value: u, child: Text(u)))
                           .toList(),
                       onChanged: (v) => setState(() => _unit = v!),
                     ),
@@ -148,13 +158,15 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                  FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d*\.?\d{0,2}')),
                 ],
                 decoration: InputDecoration(
                   labelText: 'Your offer per $_unit (KES)',
                   prefixText: 'KES ',
                 ),
-                validator: (v) => Validators.positiveNumber(v, label: 'Price'),
+                validator: (v) =>
+                    Validators.positiveNumber(v, label: 'Price'),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -168,46 +180,32 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
               const _SectionLabel('Delivery point'),
               const SizedBox(height: 6),
               const Text(
                 'Only the broad area is shared with sellers.',
-                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style: TextStyle(
+                    fontSize: 12, color: AppColors.textMuted),
               ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _county,
-                decoration: const InputDecoration(labelText: 'County'),
-                items: KenyaLocations.counties
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setState(() => _county = v),
-                validator: Validators.county,
+              const SizedBox(height: 14),
+              LocationPicker(
+                initial: _location,
+                onChanged: (sel) => setState(() {
+                  _location = sel;
+                  _locationError = null;
+                }),
+                onValidationError: (msg) =>
+                    setState(() => _locationError = msg),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _subCounty,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Sub-county'),
-                validator: (v) =>
-                    Validators.requiredText(v, label: 'Sub-county'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _area,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Area / Village'),
-                validator: (v) => Validators.requiredText(v, label: 'Area'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _notes,
-                maxLines: 2,
-                maxLength: 120,
-                decoration: const InputDecoration(
-                  labelText: 'Landmark / notes (optional)',
+              if (_locationError != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _locationError!,
+                  style: const TextStyle(
+                      color: AppColors.danger, fontSize: 12),
                 ),
-              ),
+              ],
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: _submit,

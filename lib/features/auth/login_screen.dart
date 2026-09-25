@@ -154,7 +154,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Demo build — data is local and resets on reload.',
+                  'Local-only build — data is stored on-device and resets on reload.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11,
