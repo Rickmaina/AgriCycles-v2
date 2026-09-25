@@ -10,6 +10,7 @@ import '../../data/services/auth_service.dart';
 import '../admin/logistics_queue_screen.dart';
 import '../admin/pending_review_queue_screen.dart';
 import '../admin/verification_queue_screen.dart';
+import '../auth/controllers/auth_controller.dart';
 import '../buy_requests/screens/post_need_screen.dart';
 import '../community/screens/create_pre_order_screen.dart';
 import '../disputes/screens/admin_disputes_screen.dart';
@@ -111,9 +112,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Log out',
-            onPressed: () {
-              ref.read(authProvider.notifier).logout();
-              context.go(AppRoutes.login);
+            onPressed: () async {
+              await ref.read(authControllerProvider).logout();
+              if (context.mounted) context.go(AppRoutes.login);
             },
           ),
         ],

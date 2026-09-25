@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/enums.dart';
+import '../../../core/constants/kenya_locations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/community_contribution_model.dart';
 import '../../../data/models/pre_order_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
-import '../../../shared/widgets/location_picker.dart';
 import '../controllers/pre_order_controller.dart';
 
 class CommunityOrderDetailScreen extends ConsumerWidget {
@@ -75,8 +75,8 @@ class CommunityOrderDetailScreen extends ConsumerWidget {
             const SizedBox(height: 10),
             _ContributeForm(
               preOrder: preOrder,
-              remaining: (preOrder.targetQuantity - committed)
-                  .clamp(0, double.infinity),
+              remaining:
+                  (preOrder.targetQuantity - committed).clamp(0, double.infinity),
             ),
           ] else if (!isBuyer && locked) ...[
             Container(
@@ -586,29 +586,20 @@ class _ContributeForm extends ConsumerStatefulWidget {
 class _ContributeFormState extends ConsumerState<_ContributeForm> {
   final _formKey = GlobalKey<FormState>();
   final _quantity = TextEditingController();
-
-  LocationSelection? _location;
-  String? _locationError;
+  final _subCounty = TextEditingController();
+  final _area = TextEditingController();
+  String? _county;
 
   @override
   void dispose() {
     _quantity.dispose();
+    _subCounty.dispose();
+    _area.dispose();
     super.dispose();
   }
 
   void _submit() {
-    final formOk = _formKey.currentState!.validate();
-    final locationOk = _location != null &&
-        _location!.county.isNotEmpty &&
-        _location!.subCounty.isNotEmpty;
-    if (!formOk || !locationOk) {
-      if (!locationOk) {
-        setState(() => _locationError =
-            'Please select your pickup county and sub-county.');
-      }
-      return;
-    }
-
+    if (!_formKey.currentState!.validate()) return;
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -617,9 +608,9 @@ class _ContributeFormState extends ConsumerState<_ContributeForm> {
           farmerId: user.id,
           farmerName: user.name,
           quantity: double.parse(_quantity.text.trim()),
-          pickupCounty: _location!.county,
-          pickupSubCounty: _location!.subCounty,
-          pickupArea: _location!.ward,
+          pickupCounty: _county!,
+          pickupSubCounty: _subCounty.text.trim(),
+          pickupArea: _area.text.trim(),
         );
 
     context.showSnack('Contribution submitted');
@@ -663,27 +654,37 @@ class _ContributeFormState extends ConsumerState<_ContributeForm> {
           const SizedBox(height: 16),
           const Text(
             'Your pickup point',
-            style:
-                TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
-          LocationPicker(
-            initial: _location,
-            onChanged: (sel) => setState(() {
-              _location = sel;
-              _locationError = null;
-            }),
-            onValidationError: (msg) =>
-                setState(() => _locationError = msg),
+          DropdownButtonFormField<String>(
+            value: _county,
+            decoration: const InputDecoration(labelText: 'County'),
+            items: KenyaLocations.counties
+                .map((c) =>
+                    DropdownMenuItem(value: c, child: Text(c)))
+                .toList(),
+            onChanged: (v) => setState(() => _county = v),
+            validator: Validators.county,
           ),
-          if (_locationError != null) ...[
-            const SizedBox(height: 10),
-            Text(
-              _locationError!,
-              style: const TextStyle(
-                  color: AppColors.danger, fontSize: 12),
-            ),
-          ],
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _subCounty,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(labelText: 'Sub-county'),
+            validator: (v) =>
+                Validators.requiredText(v, label: 'Sub-county'),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _area,
+            textCapitalization: TextCapitalization.words,
+            decoration:
+                const InputDecoration(labelText: 'Area / Village'),
+            validator: (v) =>
+                Validators.requiredText(v, label: 'Area'),
+          ),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: _submit,

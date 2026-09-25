@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/enums.dart';
+import '../../../core/constants/kenya_locations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/buy_request_offer_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
-import '../../../shared/widgets/location_picker.dart';
 import '../controllers/buy_request_controller.dart';
 
 class BuyRequestDetailScreen extends ConsumerWidget {
@@ -111,20 +111,18 @@ class _SummaryCard extends StatelessWidget {
                 fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 14),
-          _row('Needs', '${request.quantity} ${request.unit}'),
+          _row('Needs',
+              '${request.quantity} ${request.unit}'),
           const SizedBox(height: 6),
-          _row(
-            'Offering',
-            '${(request.offeredPricePerUnit as double).kes} / ${request.unit}',
-          ),
+          _row('Offering',
+              '${(request.offeredPricePerUnit as double).kes} / ${request.unit}'),
           const SizedBox(height: 6),
-          _row(
-            'Total budget',
-            (request.totalBudget as double).kes,
-            bold: true,
-          ),
+          _row('Total budget',
+              (request.totalBudget as double).kes,
+              bold: true),
           const Divider(height: 24, color: AppColors.border),
-          _row('Deliver to', request.deliveryBroadLocation as String),
+          _row('Deliver to',
+              '${request.deliveryBroadLocation}'),
           if (request.description != null) ...[
             const SizedBox(height: 10),
             Container(
@@ -380,9 +378,9 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
   late final TextEditingController _quantity;
   late final TextEditingController _price;
   final _message = TextEditingController();
-
-  LocationSelection? _location;
-  String? _locationError;
+  final _subCounty = TextEditingController();
+  final _area = TextEditingController();
+  String? _county;
 
   @override
   void initState() {
@@ -398,26 +396,18 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
     _quantity.dispose();
     _price.dispose();
     _message.dispose();
+    _subCounty.dispose();
+    _area.dispose();
     super.dispose();
   }
 
   void _submit() {
-    final formOk = _formKey.currentState!.validate();
-    final locationOk = _location != null &&
-        _location!.county.isNotEmpty &&
-        _location!.subCounty.isNotEmpty;
-    if (!formOk || !locationOk) {
-      if (!locationOk) {
-        setState(() => _locationError =
-            'Please select your pickup county and sub-county.');
-      }
-      return;
-    }
-
+    if (!_formKey.currentState!.validate()) return;
     final user = ref.read(authProvider);
     if (user == null) return;
 
-    final request = ref.read(buyRequestByIdProvider(widget.requestId));
+    final request =
+        ref.read(buyRequestByIdProvider(widget.requestId));
     if (request == null) return;
 
     ref.read(buyRequestControllerProvider).submitOffer(
@@ -426,9 +416,9 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
           sellerName: user.name,
           pricePerUnit: double.parse(_price.text.trim()),
           quantity: double.parse(_quantity.text.trim()),
-          pickupCounty: _location!.county,
-          pickupSubCounty: _location!.subCounty,
-          pickupArea: _location!.ward,
+          pickupCounty: _county!,
+          pickupSubCounty: _subCounty.text.trim(),
+          pickupArea: _area.text.trim(),
           message: _message.text.trim().isEmpty
               ? null
               : _message.text.trim(),
@@ -482,29 +472,35 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Your pickup point',
-            style: TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w700),
-          ),
+          const _SectionLabel('Your pickup point'),
           const SizedBox(height: 10),
-          LocationPicker(
-            initial: _location,
-            onChanged: (sel) => setState(() {
-              _location = sel;
-              _locationError = null;
-            }),
-            onValidationError: (msg) =>
-                setState(() => _locationError = msg),
+          DropdownButtonFormField<String>(
+            value: _county,
+            decoration: const InputDecoration(labelText: 'County'),
+            items: KenyaLocations.counties
+                .map((c) =>
+                    DropdownMenuItem(value: c, child: Text(c)))
+                .toList(),
+            onChanged: (v) => setState(() => _county = v),
+            validator: Validators.county,
           ),
-          if (_locationError != null) ...[
-            const SizedBox(height: 10),
-            Text(
-              _locationError!,
-              style: const TextStyle(
-                  color: AppColors.danger, fontSize: 12),
-            ),
-          ],
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _subCounty,
+            textCapitalization: TextCapitalization.words,
+            decoration:
+                const InputDecoration(labelText: 'Sub-county'),
+            validator: (v) =>
+                Validators.requiredText(v, label: 'Sub-county'),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _area,
+            textCapitalization: TextCapitalization.words,
+            decoration:
+                const InputDecoration(labelText: 'Area / Village'),
+            validator: (v) => Validators.requiredText(v, label: 'Area'),
+          ),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: _submit,

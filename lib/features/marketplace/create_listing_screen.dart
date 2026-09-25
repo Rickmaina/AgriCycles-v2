@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/constants/kenya_locations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/extensions.dart';
 import '../../data/services/auth_service.dart';
+import '../../data/services/mock/mock_listings.dart';
 import '../../domain/validators.dart';
-import '../../shared/widgets/location_picker.dart';
 import 'controllers/marketplace_controller.dart';
 
 class CreateListingScreen extends ConsumerStatefulWidget {
@@ -24,18 +25,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final _quantity = TextEditingController();
   final _price = TextEditingController();
   final _description = TextEditingController();
+  final _subCounty = TextEditingController();
+  final _area = TextEditingController();
 
   String _category = 'Crop residue';
   String _unit = 'tonnes';
-  LocationSelection? _location;
-  String? _locationError;
+  String? _county;
 
   static const _units = ['kg', 'tonnes', 'bags', 'litres'];
-  static const _categories = [
-    'Crop residue',
-    'Animal waste',
-    'By-product',
-  ];
 
   @override
   void initState() {
@@ -52,6 +49,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     _quantity.dispose();
     _price.dispose();
     _description.dispose();
+    _subCounty.dispose();
+    _area.dispose();
     super.dispose();
   }
 
@@ -62,28 +61,17 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   }
 
   Future<void> _confirmAndSubmit() async {
-    final formOk = _formKey.currentState!.validate();
-    final locationOk = _location != null &&
-        _location!.county.isNotEmpty &&
-        _location!.subCounty.isNotEmpty;
-    if (!formOk || !locationOk) {
-      if (!locationOk) {
-        setState(
-            () => _locationError = 'Please select your county and sub-county.');
-      }
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Submit for review?'),
+        title: const Text('Publish listing?'),
         content: Text(
           '${_resourceType.text.trim()} • '
           '${_quantity.text.trim()} $_unit\n'
           'KES ${_price.text.trim()} / $_unit  •  '
-          'Total ${_totalValue.kes}\n\n'
-          'Your listing will be reviewed before it appears in the marketplace.',
+          'Total ${_totalValue.kes}',
         ),
         actions: [
           TextButton(
@@ -92,7 +80,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Submit for review'),
+            child: const Text('Publish'),
           ),
         ],
       ),
@@ -114,14 +102,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
           description: _description.text.trim().isEmpty
               ? null
               : _description.text.trim(),
-          county: _location!.county,
-          subCounty: _location!.subCounty,
-          area: _location!.ward,
+          county: _county!,
+          subCounty: _subCounty.text.trim(),
+          area: _area.text.trim(),
           sellerVerification: user.verificationStatus,
         );
 
     if (!mounted) return;
-    context.showSnack('Listing submitted for review');
+    context.showSnack('Listing published');
     context.pop();
   }
 
@@ -153,18 +141,21 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   labelText: 'Resource name',
                   hintText: 'e.g. Maize stalks, Cow manure',
                 ),
-                validator: (v) => Validators.requiredText(v, label: 'Resource'),
+                validator: (v) =>
+                    Validators.requiredText(v, label: 'Resource'),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _category,
+                value: _category,
                 decoration: const InputDecoration(labelText: 'Category'),
-                items: _categories
+                items: MockListings.categories
+                    .where((c) => c != 'All')
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (v) => setState(() => _category = v!),
               ),
               const SizedBox(height: 24),
+
               const _SectionLabel('Quantity & price'),
               const SizedBox(height: 10),
               Row(
@@ -174,13 +165,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                     flex: 3,
                     child: TextFormField(
                       controller: _quantity,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d{0,2}')),
                       ],
-                      decoration: const InputDecoration(labelText: 'Quantity'),
+                      decoration:
+                          const InputDecoration(labelText: 'Quantity'),
                       validator: (v) => Validators.positiveNumber(v,
                           label: 'Quantity', max: 100000),
                     ),
@@ -189,11 +181,11 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   Expanded(
                     flex: 2,
                     child: DropdownButtonFormField<String>(
-                      initialValue: _unit,
+                      value: _unit,
                       decoration: const InputDecoration(labelText: 'Unit'),
                       items: _units
-                          .map(
-                              (u) => DropdownMenuItem(value: u, child: Text(u)))
+                          .map((u) =>
+                              DropdownMenuItem(value: u, child: Text(u)))
                           .toList(),
                       onChanged: (v) => setState(() => _unit = v!),
                     ),
@@ -206,13 +198,15 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                  FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d*\.?\d{0,2}')),
                 ],
                 decoration: InputDecoration(
                   labelText: 'Price per $_unit (KES)',
                   prefixText: 'KES ',
                 ),
-                validator: (v) => Validators.positiveNumber(v, label: 'Price'),
+                validator: (v) =>
+                    Validators.positiveNumber(v, label: 'Price'),
               ),
               if (_totalValue > 0) ...[
                 const SizedBox(height: 12),
@@ -230,10 +224,12 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
               const _SectionLabel('Photos'),
               const SizedBox(height: 10),
               const _PhotoPlaceholder(),
               const SizedBox(height: 24),
+
               const _SectionLabel('Pickup location'),
               const SizedBox(height: 6),
               const Text(
@@ -244,26 +240,35 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 14),
-              LocationPicker(
-                initial: _location,
-                onChanged: (sel) => setState(() {
-                  _location = sel;
-                  _locationError = null;
-                }),
-                onValidationError: (msg) =>
-                    setState(() => _locationError = msg),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _county,
+                decoration: const InputDecoration(labelText: 'County'),
+                items: KenyaLocations.counties
+                    .map((c) =>
+                        DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (v) => setState(() => _county = v),
+                validator: Validators.county,
               ),
-              if (_locationError != null) ...[
-                const SizedBox(height: 10),
-                Text(
-                  _locationError!,
-                  style: const TextStyle(
-                    color: AppColors.danger,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _subCounty,
+                textCapitalization: TextCapitalization.words,
+                decoration:
+                    const InputDecoration(labelText: 'Sub-county'),
+                validator: (v) =>
+                    Validators.requiredText(v, label: 'Sub-county'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _area,
+                textCapitalization: TextCapitalization.words,
+                decoration:
+                    const InputDecoration(labelText: 'Area / Village'),
+                validator: (v) =>
+                    Validators.requiredText(v, label: 'Area'),
+              ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
                 onPressed: _confirmAndSubmit,
@@ -314,7 +319,8 @@ class _TotalPreview extends StatelessWidget {
           const SizedBox(width: 8),
           const Text(
             'Total listing value',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: TextStyle(
+                fontSize: 13, color: AppColors.textSecondary),
           ),
           const Spacer(),
           Text(
