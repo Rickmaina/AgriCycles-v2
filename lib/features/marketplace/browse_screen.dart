@@ -21,6 +21,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   String? _county;
 
   List<ListingModel> _filtered(List<ListingModel> source) => source.where((l) {
+        if (!l.isVisibleToPublic) return false;
         final matchCat = _category == 'All' || l.category == _category;
         final matchCounty = _county == null || l.county == _county;
         return matchCat && matchCounty;
