@@ -154,7 +154,7 @@ class _OrderRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$prefix $counterparty  ·  ${_total()}',
+                      '$prefix $counterparty  ·  ${_total()}  ·  ${order.quality}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

@@ -6,6 +6,7 @@ class OrderModel {
   final String listingId;
   final String resourceType;
   final String unit;
+  final String quality;
 
   final String buyerId;
   final String buyerName;
@@ -30,6 +31,7 @@ class OrderModel {
     required this.listingId,
     required this.resourceType,
     required this.unit,
+    this.quality = 'Standard',
     required this.buyerId,
     required this.buyerName,
     required this.sellerId,
@@ -88,6 +90,7 @@ class OrderModel {
       listingId: listingId,
       resourceType: resourceType,
       unit: unit,
+      quality: quality,
       buyerId: buyerId,
       buyerName: buyerName,
       sellerId: sellerId,

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/segmented_toggle.dart';
 import '../../buy_requests/screens/browse_needs_screen.dart';
-import '../../marketplace/browse_screen.dart';
-import '../../marketplace/incoming_offers_screen.dart';
-import '../../marketplace/my_listings_screen.dart';
+import '../../marketplace/screens/browse_screen.dart';
+import '../../marketplace/screens/incoming_offers_screen.dart';
+import '../../marketplace/screens/my_listings_screen.dart';
 
 class FarmerMarketTab extends StatefulWidget {
   const FarmerMarketTab({super.key});

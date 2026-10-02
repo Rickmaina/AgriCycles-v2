@@ -12,6 +12,10 @@ import 'package:flutter/services.dart';
 /// sub-county of any county: [isValidPair] and the cascading lookup
 /// methods make a mismatched pair structurally impossible from the UI.
 class LocationCatalog {
+  static const Map<String, String> _legacySubCountyAliases = {
+    'kakamega::mumias': 'Mumias West',
+  };
+
   LocationCatalog._({
     required this.counties,
     required Map<String, List<String>> subCountiesByCounty,
@@ -101,10 +105,23 @@ class LocationCatalog {
     return _wardsBySubCountyKey[_key(county, subCounty)] ?? const [];
   }
 
+  /// Canonicalizes known legacy names to their current county/sub-county value.
+  static String canonicalizeSubCounty(String county, String subCounty) {
+    final countryKey = county.trim();
+    final valueKey = subCounty.trim();
+    final alias = _legacySubCountyAliases[
+        '${countryKey.toLowerCase()}::${valueKey.toLowerCase()}'];
+    if (alias != null) return alias;
+    return valueKey;
+  }
+
   /// True when [subCounty] is a real sub-county of [county].
   /// This is the validation the old free-text picker could not do.
   bool isValidPair(String county, String subCounty) {
-    return subCountiesFor(county).contains(subCounty);
+    final normalizedCounty = county.trim();
+    final normalizedSubCounty =
+        canonicalizeSubCounty(normalizedCounty, subCounty);
+    return subCountiesFor(normalizedCounty).contains(normalizedSubCounty);
   }
 
   /// True when [ward] belongs to ([county], [subCounty]).

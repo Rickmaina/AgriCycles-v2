@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/enums.dart';
 import '../../core/theme/role_theme.dart';
+import '../../core/utils/extensions.dart';
 import '../../data/models/order_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../domain/transport_estimator.dart';
@@ -187,6 +188,14 @@ class OrderDetailScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          Text(
+            'Quality: ${order.quality}',
+            style: TextStyle(
+              fontSize: 13,
+              color: theme.textSecondary,
+            ),
+          ),
         ],
       ),
     );
@@ -346,8 +355,43 @@ class OrderDetailScreen extends ConsumerWidget {
           );
           return;
         }
+        if (order.state == OrderState.accepted && isBuyer) {
+          _confirmAction(
+            context,
+            title: 'Secure payment?',
+            message:
+                'This will move the order to payment secured and notify the seller.',
+            onConfirm: () {
+              controller.advance(order.id);
+              context.showSnack('Payment secured');
+            },
+          );
+          return;
+        }
+        if (order.state == OrderState.completed && isBuyer) {
+          _confirmAction(
+            context,
+            title: 'Release payment?',
+            message:
+                'Confirm that the delivery was received and the invoice should be released.',
+            onConfirm: () {
+              controller.advance(order.id);
+              context.showSnack('Payment released');
+            },
+          );
+          return;
+        }
         if (order.state == OrderState.qualityConfirmed && isBuyer) {
-          controller.advance(order.id);
+          _confirmAction(
+            context,
+            title: 'Confirm quality?',
+            message:
+                'This will mark the order as complete and close the fulfilment loop.',
+            onConfirm: () {
+              controller.advance(order.id);
+              context.showSnack('Order completed');
+            },
+          );
           return;
         }
         if (order.state == OrderState.disputed) {
@@ -360,6 +404,34 @@ class OrderDetailScreen extends ConsumerWidget {
         }
         controller.advance(order.id);
       },
+    );
+  }
+
+  void _confirmAction(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required VoidCallback onConfirm,
+  }) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onConfirm();
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
     );
   }
 

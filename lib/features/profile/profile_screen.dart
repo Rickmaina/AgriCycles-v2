@@ -54,8 +54,29 @@ class ProfileScreen extends ConsumerWidget {
               title: 'Log out',
               subtitle: 'See you next time',
               onTap: () {
-                ref.read(authProvider.notifier).logout();
-                context.go(AppRoutes.login);
+                showDialog<void>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Log out?'),
+                    content: const Text(
+                      'You can sign back in any time from the login screen.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          ref.read(authProvider.notifier).logout();
+                          context.go(AppRoutes.login);
+                        },
+                        child: const Text('Log out'),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
           ],
@@ -70,9 +91,8 @@ class ProfileScreen extends ConsumerWidget {
     String? county,
     String? area,
   ) {
-    final locationParts = [area, county]
-        .where((p) => p != null && p.isNotEmpty)
-        .toList();
+    final locationParts =
+        [area, county].where((p) => p != null && p.isNotEmpty).toList();
     final locationLine =
         locationParts.isEmpty ? 'Farmer' : locationParts.join(', ');
 

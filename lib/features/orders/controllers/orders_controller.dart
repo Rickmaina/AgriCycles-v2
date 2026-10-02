@@ -49,6 +49,7 @@ class OrdersController {
     required String listingId,
     required String resourceType,
     required String unit,
+    String quality = 'Standard',
     required String buyerId,
     required String buyerName,
     required String sellerId,
@@ -70,27 +71,73 @@ class OrdersController {
     @Deprecated('Migrate to GeoLocation — see privacy_coordinates.md')
     String? deliveryArea,
     String? deliveryNotes,
-  }) =>
-      _svc.createFromOffer(
-        listingId: listingId,
-        resourceType: resourceType,
-        unit: unit,
-        buyerId: buyerId,
-        buyerName: buyerName,
-        sellerId: sellerId,
-        sellerName: sellerName,
-        quantity: quantity,
-        pricePerUnit: pricePerUnit,
-        pickupLocation: pickupLocation,
-        pickupCounty: pickupCounty,
-        pickupSubCounty: pickupSubCounty,
-        pickupArea: pickupArea,
-        deliveryLocation: deliveryLocation,
-        deliveryCounty: deliveryCounty,
-        deliverySubCounty: deliverySubCounty,
-        deliveryArea: deliveryArea,
-        deliveryNotes: deliveryNotes,
-      );
+  }) {
+    final order = _svc.createFromOffer(
+      listingId: listingId,
+      resourceType: resourceType,
+      unit: unit,
+      quality: quality,
+      buyerId: buyerId,
+      buyerName: buyerName,
+      sellerId: sellerId,
+      sellerName: sellerName,
+      quantity: quantity,
+      pricePerUnit: pricePerUnit,
+      pickupLocation: pickupLocation,
+      pickupCounty: pickupCounty,
+      pickupSubCounty: pickupSubCounty,
+      pickupArea: pickupArea,
+      deliveryLocation: deliveryLocation,
+      deliveryCounty: deliveryCounty,
+      deliverySubCounty: deliverySubCounty,
+      deliveryArea: deliveryArea,
+      deliveryNotes: deliveryNotes,
+    );
+
+    final notify = _ref.read(notificationControllerProvider);
+    notify.notifyOrder(
+      recipientId: buyerId,
+      orderId: order.id,
+      resourceType: order.resourceType,
+      state: order.state,
+    );
+    notify.notifyOrder(
+      recipientId: sellerId,
+      orderId: order.id,
+      resourceType: order.resourceType,
+      state: order.state,
+    );
+
+    return order;
+  }
+
+  /// Submits payment proof and advances the order to the secured-payment step.
+  void submitPaymentEvidence({
+    required String orderId,
+    required String method,
+    required String reference,
+    required DateTime date,
+    String? note,
+  }) {
+    final order = _svc.byId(orderId);
+    if (order == null) return;
+
+    final notify = _ref.read(notificationControllerProvider);
+    if (order.state == OrderState.accepted) {
+      _svc.advanceTo(orderId, OrderState.paymentSecured);
+    }
+
+    notify.notifyPaymentVerified(
+      recipientId: order.buyerId,
+      orderId: order.id,
+      resourceType: order.resourceType,
+    );
+    notify.notifyPaymentVerified(
+      recipientId: order.sellerId,
+      orderId: order.id,
+      resourceType: order.resourceType,
+    );
+  }
 }
 
 final ordersControllerProvider =

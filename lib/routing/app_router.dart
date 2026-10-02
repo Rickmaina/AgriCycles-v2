@@ -14,11 +14,11 @@ import '../features/home/farmer_activity_screen.dart';
 import '../features/home/farmer_dashboard.dart';
 import '../features/home/farmer_shell.dart';
 import '../features/home/home_shell.dart';
-import '../features/marketplace/browse_screen.dart';
-import '../features/marketplace/create_listing_screen.dart';
-import '../features/marketplace/incoming_offers_screen.dart';
-import '../features/marketplace/market_home_screen.dart';
-import '../features/marketplace/my_listings_screen.dart';
+import '../features/marketplace/screens/browse_screen.dart';
+import '../features/marketplace/screens/create_listing_screen.dart';
+import '../features/marketplace/screens/incoming_offers_screen.dart';
+import '../features/marketplace/screens/market_home_screen.dart';
+import '../features/marketplace/screens/my_listings_screen.dart';
 import '../features/notifications/screens/notifications_screen.dart';
 import '../features/onboarding/farm_location_screen.dart';
 import '../features/onboarding/get_started_screen.dart';
@@ -139,4 +139,3 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-

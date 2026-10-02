@@ -3,18 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_routes.dart';
+import '../../core/constants/enums.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/role_theme.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/notification_service.dart';
+import '../../shared/widgets/farmer_drawer.dart';
 import '../admin/logistics_queue_screen.dart';
 import '../admin/pending_review_queue_screen.dart';
 import '../admin/verification_queue_screen.dart';
 import '../disputes/screens/admin_disputes_screen.dart';
-import '../marketplace/company_browse_screen.dart';
+import '../marketplace/screens/browse_screen.dart';
 import '../notifications/screens/notifications_screen.dart';
-import '../orders/cockpit_orders_list_screen.dart';
-import '../profile/cockpit_profile_screen.dart';
+import '../orders/orders_list_screen.dart';
+import '../profile/profile_screen.dart';
+import 'farmer_dashboard.dart';
 import 'widgets/admin_home.dart';
 import 'widgets/company_home.dart';
 
@@ -205,11 +208,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       case UserRole.admin:
         return const [
           _NavItem(Icons.home_outlined, Icons.home, 'Home'),
-          _NavItem(Icons.verified_user_outlined, Icons.verified_user,
-              'Verify'),
+          _NavItem(Icons.verified_user_outlined, Icons.verified_user, 'Verify'),
           _NavItem(Icons.fact_check_outlined, Icons.fact_check, 'Review'),
-          _NavItem(Icons.local_shipping_outlined, Icons.local_shipping,
-              'Logistics'),
+          _NavItem(
+              Icons.local_shipping_outlined, Icons.local_shipping, 'Logistics'),
           _NavItem(Icons.gavel_outlined, Icons.gavel, 'Disputes'),
           _NavItem(Icons.person_outline, Icons.person, 'Profile'),
         ];

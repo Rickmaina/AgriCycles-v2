@@ -10,6 +10,7 @@ class ListingModel {
   final double quantity;
   final String unit;
   final double pricePerUnit;
+  final String quality;
   final String? description;
   final String? photoUrl;
   final GeoLocation location;
@@ -32,6 +33,7 @@ class ListingModel {
     required this.quantity,
     required this.unit,
     required this.pricePerUnit,
+    this.quality = 'Standard',
     this.description,
     this.photoUrl,
     GeoLocation? location,
@@ -72,6 +74,7 @@ class ListingModel {
     double? quantity,
     String? unit,
     double? pricePerUnit,
+    String? quality,
     String? description,
     String? photoUrl,
     GeoLocation? location,
@@ -99,6 +102,7 @@ class ListingModel {
       quantity: quantity ?? this.quantity,
       unit: unit ?? this.unit,
       pricePerUnit: pricePerUnit ?? this.pricePerUnit,
+      quality: quality ?? this.quality,
       description: description ?? this.description,
       photoUrl: photoUrl ?? this.photoUrl,
       location: nextLocation,

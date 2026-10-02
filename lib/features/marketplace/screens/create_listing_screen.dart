@@ -3,15 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/constants/app_routes.dart';
-import '../../core/theme/role_theme.dart';
-import '../../core/utils/extensions.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/seed/seed_listings.dart';
-import '../../domain/validators.dart';
-import '../../shared/widgets/farmer_action_button.dart';
-import '../../shared/widgets/location_picker.dart';
-import 'controllers/marketplace_controller.dart';
+import '../../../core/constants/app_routes.dart';
+import '../../../core/theme/role_theme.dart';
+import '../../../core/utils/extensions.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../data/services/seed/seed_listings.dart';
+import '../../../domain/validators.dart';
+import '../../../shared/widgets/farmer_action_button.dart';
+import '../../../shared/widgets/location_picker.dart';
+import '../controllers/marketplace_controller.dart';
 
 /// Farmer listing creation. One screen, minimal fields, submit for
 /// admin review.
@@ -29,6 +29,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final _quantity = TextEditingController();
   final _price = TextEditingController();
 
+  String _selectedResource = SeedListings.resourceCatalogue.first;
+  String _quality = 'Standard';
   String _category = 'Crop residue';
   String _unit = 'tonnes';
   LocationSelection? _location;
@@ -36,6 +38,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   bool _submitting = false;
 
   static const _units = ['kg', 'tonnes', 'bags', 'litres'];
+
+  bool get _isOtherResource => _selectedResource == 'Other agricultural waste';
 
   @override
   void dispose() {
@@ -46,11 +50,17 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   }
 
   Future<void> _submit() async {
+    final resourceName =
+        _isOtherResource ? _resourceType.text.trim() : _selectedResource.trim();
+
     final formOk = _formKey.currentState!.validate();
     final locationOk = _location != null &&
         _location!.county.isNotEmpty &&
         _location!.subCounty.isNotEmpty;
-    if (!formOk || !locationOk) {
+    if (!formOk || !locationOk || resourceName.isEmpty) {
+      if (resourceName.isEmpty) {
+        _formKey.currentState?.validate();
+      }
       if (!locationOk) {
         setState(() => _locationError = 'Pick where buyers can collect.');
       }
@@ -86,11 +96,12 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     ref.read(marketplaceControllerProvider).addListing(
           sellerId: user.id,
           sellerName: user.name,
-          resourceType: _resourceType.text.trim(),
+          resourceType: resourceName,
           category: _category,
           quantity: double.parse(_quantity.text.trim()),
           unit: _unit,
           pricePerUnit: double.parse(_price.text.trim()),
+          quality: _quality,
           county: _location!.county,
           subCounty: _location!.subCounty,
           area: _location!.ward,
@@ -116,7 +127,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Sell something'),
+        title: const Text('What are you selling?'),
       ),
       body: SafeArea(
         child: Column(
@@ -129,17 +140,41 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _field(
-                        theme: theme,
-                        controller: _resourceType,
-                        label: 'What are you selling?',
-                        hint: 'e.g. Maize stalks',
-                        keyboard: TextInputType.text,
-                        validator: (v) => Validators.requiredText(
-                          v,
-                          label: 'Resource name',
+                      Text(
+                        'Tell buyers what you have to sell.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: theme.textMuted,
+                          height: 1.4,
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'What are you selling?',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: theme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _resourcePicker(theme),
+                      if (_isOtherResource) ...[
+                        const SizedBox(height: 14),
+                        _field(
+                          theme: theme,
+                          controller: _resourceType,
+                          label: 'Describe the material',
+                          hint: 'e.g. Banana stems',
+                          keyboard: TextInputType.text,
+                          validator: (v) => Validators.requiredText(
+                            v,
+                            label: 'Material',
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 14),
+                      _qualityPicker(theme),
                       const SizedBox(height: 14),
                       _categoryPicker(theme),
                       const SizedBox(height: 14),
@@ -151,10 +186,10 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                             child: _field(
                               theme: theme,
                               controller: _quantity,
-                              label: 'How much?',
-                              keyboard:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
+                              label: 'Quantity',
+                              hint: 'e.g. 20',
+                              keyboard: const TextInputType.numberWithOptions(
+                                  decimal: true),
                               validator: (v) => Validators.positiveNumber(
                                 v,
                                 label: 'Quantity',
@@ -174,6 +209,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                         theme: theme,
                         controller: _price,
                         label: 'Price per $_unit (KES)',
+                        hint: 'e.g. 4500',
                         keyboard: const TextInputType.numberWithOptions(
                             decimal: true),
                         validator: (v) => Validators.positiveNumber(
@@ -218,6 +254,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                           ),
                         ),
                       ],
+                      const SizedBox(height: 20),
+                      _reviewCard(theme),
                     ],
                   ),
                 ),
@@ -226,7 +264,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
               child: FarmerActionButton(
-                label: 'Send for checking',
+                label: 'Submit listing',
                 icon: Icons.check,
                 onPressed: _submitting ? null : _submit,
                 loading: _submitting,
@@ -234,6 +272,115 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _resourcePicker(RoleTheme theme) {
+    return DropdownButtonFormField<String>(
+      initialValue: SeedListings.resourceCatalogue.contains(_selectedResource)
+          ? _selectedResource
+          : SeedListings.resourceCatalogue.first,
+      decoration: InputDecoration(
+        labelText: 'Select a resource',
+        filled: true,
+        fillColor: theme.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.border),
+        ),
+      ),
+      items: SeedListings.resourceCatalogue
+          .map((resource) => DropdownMenuItem(
+                value: resource,
+                child: Text(resource),
+              ))
+          .toList(),
+      onChanged: (value) {
+        if (value == null) return;
+        setState(() {
+          _selectedResource = value;
+          if (!_isOtherResource) {
+            _resourceType.clear();
+          }
+        });
+      },
+    );
+  }
+
+  Widget _reviewCard(RoleTheme theme) {
+    final resource =
+        _isOtherResource ? _resourceType.text.trim() : _selectedResource.trim();
+    final quantity = _quantity.text.trim();
+    final price = _price.text.trim();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Review your listing',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: theme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _reviewRow('Resource', resource.isEmpty ? 'Not added yet' : resource),
+          _reviewRow('Quantity',
+              quantity.isEmpty ? 'Not added yet' : '$quantity $_unit'),
+          _reviewRow('Quality', _quality),
+          _reviewRow(
+              'Price', price.isEmpty ? 'Not added yet' : 'KES $price / $_unit'),
+          _reviewRow(
+            'Location',
+            _location == null
+                ? 'Pick a location'
+                : '${_location!.county}, ${_location!.subCounty}',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _reviewRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -267,6 +414,31 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         ),
       ),
       validator: validator,
+    );
+  }
+
+  Widget _qualityPicker(RoleTheme theme) {
+    const qualities = ['Standard', 'Dry', 'Fresh', 'Premium', 'Mixed'];
+    return DropdownButtonFormField<String>(
+      initialValue: qualities.contains(_quality) ? _quality : 'Standard',
+      decoration: InputDecoration(
+        labelText: 'Quality',
+        filled: true,
+        fillColor: theme.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.border),
+        ),
+      ),
+      items: qualities
+          .map((quality) =>
+              DropdownMenuItem(value: quality, child: Text(quality)))
+          .toList(),
+      onChanged: (value) => setState(() => _quality = value ?? 'Standard'),
     );
   }
 

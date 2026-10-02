@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/constants/app_routes.dart';
-import '../../core/theme/role_theme.dart';
-import '../../data/models/listing_model.dart';
-import '../../data/services/auth_service.dart';
-import '../../shared/widgets/farmer_status_icon.dart';
-import '../../shared/widgets/farmer_tile.dart';
-import 'controllers/marketplace_controller.dart';
+import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/enums.dart';
+import '../../../core/theme/role_theme.dart';
+import '../../../data/models/listing_model.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../shared/widgets/farmer_status_icon.dart';
+import '../../../shared/widgets/farmer_tile.dart';
+import '../controllers/marketplace_controller.dart';
 
 /// Farmer's own listings. One row per listing, status as an icon.
 class MyListingsScreen extends ConsumerWidget {
@@ -75,6 +76,7 @@ class _ListingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     const theme = RoleTheme.farmer;
     final tone = farmerToneForListing(listing.status);
+    final statusText = _statusText(listing.status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -85,7 +87,11 @@ class _ListingRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          FarmerStatusIcon(tone: tone, size: FarmerStatusSize.large),
+          FarmerStatusIcon(
+            tone: tone,
+            size: FarmerStatusSize.large,
+            label: statusText,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -122,8 +128,26 @@ class _ListingRow extends StatelessWidget {
     );
   }
 
+  String _statusText(ListingStatus status) {
+    switch (status) {
+      case ListingStatus.pendingReview:
+        return 'Under review';
+      case ListingStatus.active:
+        return 'Active';
+      case ListingStatus.sold:
+        return 'Sold';
+      case ListingStatus.rejected:
+        return 'Rejected';
+      case ListingStatus.paused:
+        return 'Paused';
+      case ListingStatus.expired:
+        return 'Closed';
+    }
+  }
+
   String _detailLine() {
     final price = listing.pricePerUnit.round();
-    return 'KES $price / ${listing.unit}  ·  ${listing.county}';
+    final quality = listing.quality.isNotEmpty ? '  ·  ${listing.quality}' : '';
+    return 'KES $price / ${listing.unit}  ·  ${listing.county}$quality';
   }
 }

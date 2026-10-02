@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// API configuration.
 ///
 /// Two environment-driven settings:
@@ -12,10 +14,11 @@
 class ApiConfig {
   ApiConfig._();
 
-  /// Toggle in-memory mock data.
+  /// Toggle in-memory mock data. Debug builds default to the mock backend so
+  /// browser sessions do not immediately fail on a missing CORS preflight.
   static const bool useMock = bool.fromEnvironment(
     'USE_MOCK',
-    defaultValue: false,
+    defaultValue: kDebugMode,
   );
 
   /// Backend base URL. Overridable at build time.

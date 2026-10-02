@@ -86,3 +86,5 @@ yarn-error.log*
 tmp/
 temp/
 *.tmp
+agricycles_snapshot.txt
+env

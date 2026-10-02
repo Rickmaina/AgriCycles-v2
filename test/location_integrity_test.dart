@@ -26,6 +26,18 @@ void main() {
     );
   });
 
+  test('legacy Kakamega/Mumias alias is accepted for backwards compatibility',
+      () {
+    expect(
+      () => GeoLocation(
+        county: 'Kakamega',
+        subCounty: 'Mumias',
+        area: 'Bukhungu',
+      ),
+      isNot(throwsArgumentError),
+    );
+  });
+
   test('pending-review listings do not appear in marketplace browse results',
       () {
     final service = MarketplaceService();

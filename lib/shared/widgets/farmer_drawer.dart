@@ -5,8 +5,21 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/role_theme.dart';
 import '../../data/services/auth_service.dart';
+import '../../features/help/help_screen.dart';
+import '../../features/marketplace/screens/browse_screen.dart';
+import '../../features/marketplace/screens/my_listings_screen.dart';
+import '../../features/marketplace/screens/create_listing_screen.dart';
+import '../../features/notifications/screens/notifications_screen.dart';
+import '../../features/orders/orders_list_screen.dart';
+import '../../features/profile/profile_screen.dart';
+import '../../features/buy_requests/screens/post_need_screen.dart';
+import '../../features/buy_requests/screens/browse_needs_screen.dart';
+import '../../features/community/screens/community_orders_list_screen.dart';
 
 /// WhatsApp-style left drawer for farmer role.
+///
+/// Every destination the farmer needs, one tap away. Farmer-only —
+/// company and admin keep their bottom nav.
 class FarmerDrawer extends ConsumerWidget {
   const FarmerDrawer({super.key});
 
@@ -35,75 +48,99 @@ class FarmerDrawer extends ConsumerWidget {
                     icon: Icons.home_outlined,
                     label: 'Home',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.home),
+                    onTap: () => _popAndClose(context),
                   ),
                   _DrawerItem(
                     icon: Icons.sell_outlined,
                     label: 'Sell something',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.createListing),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const CreateListingScreen(),
+                    ),
                   ),
                   _DrawerItem(
                     icon: Icons.shopping_basket_outlined,
                     label: 'Buy something',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.market),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const BrowseScreen(),
+                    ),
                   ),
                   _DrawerItem(
                     icon: Icons.list_alt_outlined,
                     label: 'My Activity',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.orders),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const OrdersListScreen(),
+                    ),
                   ),
                   const _SectionDivider(),
                   _DrawerItem(
                     icon: Icons.campaign_outlined,
                     label: 'Looking for',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.browseNeeds),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const BrowseNeedsScreen(),
+                    ),
                   ),
                   _DrawerItem(
                     icon: Icons.add_circle_outline,
                     label: 'Post what I need',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.postNeed),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const PostNeedScreen(),
+                    ),
                   ),
                   _DrawerItem(
                     icon: Icons.groups_outlined,
                     label: 'Community orders',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.communityOrders),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const CommunityOrdersListScreen(),
+                    ),
                   ),
                   _DrawerItem(
                     icon: Icons.inventory_2_outlined,
                     label: 'My listings',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.myListings),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.storefront_outlined,
-                    label: 'Browse listings',
-                    theme: theme,
-                    onTap: () => _go(context, AppRoutes.browse),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const MyListingsScreen(),
+                    ),
                   ),
                   const _SectionDivider(),
                   _DrawerItem(
                     icon: Icons.notifications_none,
                     label: 'Notifications',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.notifications),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const NotificationsScreen(),
+                    ),
                   ),
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: 'My Profile',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.profile),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const ProfileScreen(),
+                    ),
                   ),
                   _DrawerItem(
                     icon: Icons.help_outline,
                     label: 'Help',
                     theme: theme,
-                    onTap: () => _go(context, AppRoutes.help),
+                    onTap: () => _pushAndClose(
+                      context,
+                      const HelpScreen(),
+                    ),
                   ),
                   _DrawerItem(
                     icon: Icons.settings_outlined,
@@ -133,9 +170,13 @@ class FarmerDrawer extends ConsumerWidget {
     );
   }
 
-  void _go(BuildContext context, String route) {
+  void _popAndClose(BuildContext context) {
     Navigator.of(context).pop();
-    context.go(route);
+  }
+
+  void _pushAndClose(BuildContext context, Widget screen) {
+    Navigator.of(context).pop();
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 
   String _locationLine(String? area, String? county) {

@@ -9,6 +9,7 @@ import '../../../data/models/notification_model.dart';
 import '../../../data/services/notification_service.dart';
 import '../../../data/services/buy_request_service.dart';
 import '../../../data/services/marketplace_service.dart';
+import '../../notifications/controllers/notification_controller.dart';
 // transport estimator not needed here; matching uses BuyRequestService.suggestedSellers
 
 class MarketplaceController {
@@ -27,6 +28,7 @@ class MarketplaceController {
     required double quantity,
     required String unit,
     required double pricePerUnit,
+    String quality = 'Standard',
     String? description,
     required String county,
     required String subCounty,
@@ -42,6 +44,7 @@ class MarketplaceController {
       quantity: quantity,
       unit: unit,
       pricePerUnit: pricePerUnit,
+      quality: quality,
       description: description,
       county: county,
       subCounty: subCounty,
@@ -128,23 +131,51 @@ class MarketplaceController {
     String? deliveryArea,
     String? deliveryNotes,
     String? message,
-  }) =>
-      _svc.createOffer(
-        listing: listing,
-        buyerId: buyerId,
-        buyerName: buyerName,
-        quantity: quantity,
-        pricePerUnit: pricePerUnit,
-        deliveryLocation: deliveryLocation,
-        deliveryCounty: deliveryCounty,
-        deliverySubCounty: deliverySubCounty,
-        deliveryArea: deliveryArea,
-        deliveryNotes: deliveryNotes,
-        message: message,
-      );
+  }) {
+    final offer = _svc.createOffer(
+      listing: listing,
+      buyerId: buyerId,
+      buyerName: buyerName,
+      quantity: quantity,
+      pricePerUnit: pricePerUnit,
+      deliveryLocation: deliveryLocation,
+      deliveryCounty: deliveryCounty,
+      deliverySubCounty: deliverySubCounty,
+      deliveryArea: deliveryArea,
+      deliveryNotes: deliveryNotes,
+      message: message,
+    );
 
-  void updateOfferStatus(String offerId, OfferStatus status) =>
-      _svc.updateOfferStatus(offerId, status);
+    _ref.read(notificationControllerProvider).notifyOfferReceived(
+          recipientId: listing.sellerId,
+          offerId: offer.id,
+          resourceType: listing.resourceType,
+          amountLabel: 'KES ${pricePerUnit.toStringAsFixed(0)}',
+        );
+
+    return offer;
+  }
+
+  void updateOfferStatus(String offerId, OfferStatus status) {
+    _svc.updateOfferStatus(offerId, status);
+
+    if (status == OfferStatus.accepted) {
+      final offer = _svc.offerById(offerId);
+      if (offer == null) return;
+
+      final listing = _ref.read(marketplaceProvider).listings.firstWhere(
+            (l) => l.id == offer.listingId,
+            orElse: () =>
+                throw StateError('Listing not found for accepted offer'),
+          );
+
+      _ref.read(notificationControllerProvider).notifyOfferAccepted(
+            recipientId: offer.buyerId,
+            offerId: offer.id,
+            resourceType: listing.resourceType,
+          );
+    }
+  }
 
   bool isNegotiationClosed(OfferModel offer) =>
       _svc.isCounterCapped(offer.id) || _svc.isExpired(offer);
@@ -174,18 +205,48 @@ class MarketplaceController {
     required double pricePerUnit,
     required double quantity,
     String? message,
-  }) =>
-      _svc.addCounterOffer(
-        offer: offer,
-        byUserId: byUserId,
-        byName: byName,
-        pricePerUnit: pricePerUnit,
-        quantity: quantity,
-        message: message,
-      );
+  }) {
+    final counter = _svc.addCounterOffer(
+      offer: offer,
+      byUserId: byUserId,
+      byName: byName,
+      pricePerUnit: pricePerUnit,
+      quantity: quantity,
+      message: message,
+    );
 
-  void acceptCurrent(OfferModel offer) =>
-      _svc.updateOfferStatus(offer.id, OfferStatus.accepted);
+    final recipientId =
+        byUserId == offer.buyerId ? offer.sellerId : offer.buyerId;
+    final listing = _ref.read(marketplaceProvider).listings.firstWhere(
+          (l) => l.id == offer.listingId,
+          orElse: () => throw StateError('Listing not found for offer'),
+        );
+
+    _ref.read(notificationControllerProvider).notifyCounterOffer(
+          recipientId: recipientId,
+          offerId: offer.id,
+          resourceType: listing.resourceType,
+          amountLabel: 'KES ${pricePerUnit.toStringAsFixed(0)}',
+        );
+
+    return counter;
+  }
+
+  void acceptCurrent(OfferModel offer) {
+    _svc.updateOfferStatus(offer.id, OfferStatus.accepted);
+
+    final listing = _ref.read(marketplaceProvider).listings.firstWhere(
+          (l) => l.id == offer.listingId,
+          orElse: () =>
+              throw StateError('Listing not found for accepted offer'),
+        );
+
+    _ref.read(notificationControllerProvider).notifyOfferAccepted(
+          recipientId: offer.buyerId,
+          offerId: offer.id,
+          resourceType: listing.resourceType,
+        );
+  }
 }
 
 final marketplaceControllerProvider =

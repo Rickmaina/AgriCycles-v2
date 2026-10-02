@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/constants/enums.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/utils/extensions.dart';
-import '../../data/models/listing_model.dart';
-import '../../data/models/offer_model.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/marketplace_service.dart';
-import '../../data/services/order_service.dart';
-import '../../shared/widgets/empty_state.dart';
-import 'controllers/marketplace_controller.dart';
-import 'widgets/counter_offer_sheet.dart';
-import 'widgets/offer_history.dart';
+import '../../../core/constants/enums.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/extensions.dart';
+import '../../../data/models/listing_model.dart';
+import '../../../data/models/offer_model.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../data/services/marketplace_service.dart';
+import '../../../data/services/order_service.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../controllers/marketplace_controller.dart';
+import '../widgets/counter_offer_sheet.dart';
+import '../widgets/offer_history.dart';
 
 class IncomingOffersScreen extends ConsumerWidget {
   const IncomingOffersScreen({super.key});
@@ -121,6 +121,7 @@ class _OfferCard extends ConsumerWidget {
           listingId: offer.listingId,
           resourceType: listing.resourceType,
           unit: listing.unit,
+          quality: listing.quality,
           buyerId: offer.buyerId,
           buyerName: offer.buyerName,
           sellerId: seller.id,

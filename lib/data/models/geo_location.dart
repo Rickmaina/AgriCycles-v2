@@ -11,13 +11,21 @@ class GeoLocation {
   final LocationSource source;
 
   GeoLocation({
-    required this.county,
-    required this.subCounty,
-    required this.area,
-    this.lat,
-    this.lng,
-    this.source = LocationSource.selfReported,
-  }) {
+    required String county,
+    required String subCounty,
+    required String area,
+    double? lat,
+    double? lng,
+    LocationSource source = LocationSource.selfReported,
+  })  : county = county.trim(),
+        subCounty = LocationCatalog.canonicalizeSubCounty(
+          county,
+          subCounty,
+        ),
+        area = area.trim(),
+        lat = lat,
+        lng = lng,
+        source = source {
     final countyValue = county.trim();
     final subCountyValue = subCounty.trim();
     if (countyValue.isEmpty || subCountyValue.isEmpty) {

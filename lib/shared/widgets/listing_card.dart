@@ -60,6 +60,26 @@ class ListingCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
+                      if (listing.quality.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.primaryMuted,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            listing.quality,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: theme.primary,
+                            ),
+                          ),
+                        ),
                       Text(
                         _priceLine(),
                         maxLines: 1,

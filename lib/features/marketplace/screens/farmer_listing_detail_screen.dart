@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/constants/enums.dart';
-import '../../core/theme/role_theme.dart';
-import '../../data/models/listing_model.dart';
-import '../../data/models/user_model.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/seed/seed_data.dart';
-import '../../shared/widgets/farmer_action_button.dart';
-import '../../shared/widgets/farmer_distance.dart';
+import '../../../core/constants/enums.dart';
+import '../../../core/theme/role_theme.dart';
+import '../../../data/models/listing_model.dart';
+import '../../../data/models/user_model.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../data/services/seed/seed_data.dart';
+import '../../../shared/widgets/farmer_action_button.dart';
+import '../../../shared/widgets/farmer_distance.dart';
 import 'make_offer_screen.dart';
 
 /// Farmer listing detail: hero photo, large price, two actions, details collapsed.
@@ -70,7 +70,8 @@ class _FarmerListingDetailScreenState
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 18, color: theme.primary),
+                          Icon(Icons.location_on,
+                              size: 18, color: theme.primary),
                           const SizedBox(width: 4),
                           Text(
                             distance,
@@ -145,6 +146,7 @@ class _FarmerListingDetailScreenState
                           'How much',
                           '${_qty(listing.quantity)} ${listing.unit}',
                         ),
+                        _detailRow(theme, 'Quality', listing.quality),
                         _detailRow(theme, 'Place', listing.broadLocation),
                         if (listing.description != null &&
                             listing.description!.isNotEmpty)

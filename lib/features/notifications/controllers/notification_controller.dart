@@ -10,6 +10,8 @@ class NotificationController {
 
   NotificationService get _svc => _ref.read(notificationProvider.notifier);
 
+  // ── Order lifecycle ─────────────────────────────────────────────────────
+
   void notifyOrder({
     required String recipientId,
     required String orderId,
@@ -18,17 +20,120 @@ class NotificationController {
   }) {
     _svc.push(
       NotificationModel(
-        id: 'n${DateTime.now().microsecondsSinceEpoch}',
+        id: _id(),
         recipientId: recipientId,
         type: NotificationType.order,
         title: 'Order ${state.label.toLowerCase()}',
-        body: '$resourceType — order #${orderId.substring(3)}',
+        body: '$resourceType — order #${_short(orderId)}',
         target: NotificationTarget.order,
         targetId: orderId,
         createdAt: DateTime.now(),
       ),
     );
   }
+
+  void notifyPaymentVerified({
+    required String recipientId,
+    required String orderId,
+    required String resourceType,
+  }) {
+    _svc.push(
+      NotificationModel(
+        id: _id(),
+        recipientId: recipientId,
+        type: NotificationType.order,
+        title: 'Payment verified',
+        body:
+            '$resourceType — order #${_short(orderId)}. Pickup can now be arranged.',
+        target: NotificationTarget.order,
+        targetId: orderId,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void notifyPickupScheduled({
+    required String recipientId,
+    required String orderId,
+    required String resourceType,
+    required String when,
+  }) {
+    _svc.push(
+      NotificationModel(
+        id: _id(),
+        recipientId: recipientId,
+        type: NotificationType.order,
+        title: 'Pickup scheduled',
+        body: '$resourceType — order #${_short(orderId)} · $when',
+        target: NotificationTarget.order,
+        targetId: orderId,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  // ── Offers ──────────────────────────────────────────────────────────────
+
+  void notifyOfferReceived({
+    required String recipientId,
+    required String offerId,
+    required String resourceType,
+    required String amountLabel,
+  }) {
+    _svc.push(
+      NotificationModel(
+        id: _id(),
+        recipientId: recipientId,
+        type: NotificationType.offer,
+        title: 'New offer received',
+        body: '$resourceType — $amountLabel',
+        target: NotificationTarget.offer,
+        targetId: offerId,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void notifyCounterOffer({
+    required String recipientId,
+    required String offerId,
+    required String resourceType,
+    required String amountLabel,
+  }) {
+    _svc.push(
+      NotificationModel(
+        id: _id(),
+        recipientId: recipientId,
+        type: NotificationType.counterOffer,
+        title: 'Counter-offer received',
+        body: '$resourceType — $amountLabel',
+        target: NotificationTarget.offer,
+        targetId: offerId,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void notifyOfferAccepted({
+    required String recipientId,
+    required String offerId,
+    required String resourceType,
+  }) {
+    _svc.push(
+      NotificationModel(
+        id: _id(),
+        recipientId: recipientId,
+        type: NotificationType.offer,
+        title: 'Offer accepted',
+        body: '$resourceType — your offer was accepted',
+        target: NotificationTarget.offer,
+        targetId: offerId,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  // ── Disputes ────────────────────────────────────────────────────────────
 
   void notifyDispute({
     required String recipientId,
@@ -38,7 +143,7 @@ class NotificationController {
   }) {
     _svc.push(
       NotificationModel(
-        id: 'n${DateTime.now().microsecondsSinceEpoch}',
+        id: _id(),
         recipientId: recipientId,
         type: NotificationType.dispute,
         title: 'Dispute update',
@@ -50,6 +155,8 @@ class NotificationController {
     );
   }
 
+  // ── Community ───────────────────────────────────────────────────────────
+
   void notifyCommunity({
     required String recipientId,
     required String preOrderId,
@@ -58,7 +165,7 @@ class NotificationController {
   }) {
     _svc.push(
       NotificationModel(
-        id: 'n${DateTime.now().microsecondsSinceEpoch}',
+        id: _id(),
         recipientId: recipientId,
         type: NotificationType.community,
         title: 'Community order update',
@@ -70,13 +177,50 @@ class NotificationController {
     );
   }
 
+  // ── Listings / verification ─────────────────────────────────────────────
+
+  void notifyListingStatus({
+    required String recipientId,
+    required String listingId,
+    required String resourceType,
+    required String statusLabel,
+  }) {
+    _svc.push(
+      NotificationModel(
+        id: _id(),
+        recipientId: recipientId,
+        type: NotificationType.system,
+        title: 'Listing $statusLabel',
+        body: '$resourceType is now $statusLabel',
+        target: NotificationTarget.listing,
+        targetId: listingId,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void notifyVerification({
+    required String recipientId,
+    required String message,
+  }) {
+    _svc.push(
+      NotificationModel(
+        id: _id(),
+        recipientId: recipientId,
+        type: NotificationType.verification,
+        title: 'Verification update',
+        body: message,
+        target: NotificationTarget.verification,
+        targetId: recipientId,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
   Future<void> registerPushToken({
     required String userId,
     required String token,
   }) async {
-    // No notification SDK is currently installed in this repo, so this remains a
-    // local-only placeholder until the platform choice is confirmed.
-    // The app keeps the userId + token in memory only for now.
     if (userId.isEmpty || token.isEmpty) return;
   }
 
@@ -85,6 +229,13 @@ class NotificationController {
   void markAllRead(String userId) => _svc.markAllRead(userId);
 
   void clear(String userId) => _svc.clear(userId);
+
+  String _id() => 'n${DateTime.now().microsecondsSinceEpoch}';
+
+  String _short(String id) {
+    if (id.length <= 6) return id;
+    return id.substring(id.length - 6);
+  }
 }
 
 final notificationControllerProvider =

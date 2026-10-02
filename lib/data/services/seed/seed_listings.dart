@@ -12,6 +12,19 @@ class SeedListings {
     'By-product',
   ];
 
+  static const List<String> resourceCatalogue = [
+    'Maize stalks',
+    'Sugarcane bagasse',
+    'Maize cobs',
+    'Maize husks',
+    'Wheat straw',
+    'Rice husks',
+    'Sorghum stalks',
+    'Napier grass',
+    'Manure',
+    'Other agricultural waste',
+  ];
+
   static final List<ListingModel> all = [
     ListingModel(
       id: 'l1',

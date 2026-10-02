@@ -18,14 +18,18 @@ class FarmerActivityScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     const theme = RoleTheme.farmer;
     final user = ref.watch(authProvider);
-    final offers = user == null
-        ? <OfferModel>[]
-        : ref
-            .watch(incomingOffersProvider(user.id))
-            .where((o) =>
-                o.status == OfferStatus.pending ||
-                o.status == OfferStatus.countered)
-            .toList();
+    final incoming = user == null
+        ? const <OfferModel>[]
+        : ref.watch(incomingOffersProvider(user.id)) ?? const <OfferModel>[];
+
+    final offers = incoming
+        .where((OfferModel? offer) {
+          if (offer == null) return false;
+          return offer.status == OfferStatus.pending ||
+              offer.status == OfferStatus.countered;
+        })
+        .cast<OfferModel>()
+        .toList();
 
     return Container(
       color: theme.background,

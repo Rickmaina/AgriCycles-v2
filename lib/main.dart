@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
+import 'core/notifications/push_notifications_service.dart';
 import 'domain/location_catalog.dart';
 
 Future<void> main() async {
@@ -11,6 +12,8 @@ Future<void> main() async {
   // Screens and the LocationPicker read from LocationCatalog.instance;
   // this ensures it's ready before the first frame.
   await LocationCatalog.load();
+
+  await PushNotificationsService.initialize();
 
   runApp(
     const ProviderScope(

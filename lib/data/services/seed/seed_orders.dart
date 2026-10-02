@@ -24,7 +24,7 @@ class SeedOrders {
       updatedAt: _now.subtract(const Duration(hours: 3)),
       pickupLocation: GeoLocation(
         county: 'Kakamega',
-        subCounty: 'Mumias',
+        subCounty: 'Mumias West',
         area: 'Bukhungu',
         lat: -0.2820,
         lng: 34.7519,

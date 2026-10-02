@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/role_theme.dart';
-import '../../data/models/listing_model.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/seed/seed_listings.dart';
-import '../../shared/widgets/farmer_distance.dart';
-import '../../shared/widgets/farmer_empty_actions.dart';
-import '../../shared/widgets/listing_card.dart';
-import 'controllers/marketplace_controller.dart';
+import '../../../core/theme/role_theme.dart';
+import '../../../data/models/listing_model.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../data/services/seed/seed_listings.dart';
+import '../../../shared/widgets/farmer_distance.dart';
+import '../../../shared/widgets/farmer_empty_actions.dart';
+import '../../../shared/widgets/listing_card.dart';
+import '../controllers/marketplace_controller.dart';
 import 'farmer_listing_detail_screen.dart';
 
 /// Farmer-facing browse. Photo-first cards, one price, one location.
@@ -57,7 +57,12 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
     final user = ref.watch(authProvider);
     final all = ref.watch(allListingsProvider);
     final results = _filtered(all);
-    final counties = all.map((l) => l.county).toSet().toList()..sort();
+    final counties = all
+        .map((ListingModel l) => l.county)
+        .whereType<String>()
+        .toSet()
+        .toList()
+      ..sort();
     final from = viewerLocationOf(user);
 
     return Container(
@@ -117,7 +122,8 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           prefixIcon: const Icon(Icons.search),
           filled: true,
           fillColor: theme.surface,
-          contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: theme.border),

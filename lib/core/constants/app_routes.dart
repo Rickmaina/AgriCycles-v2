@@ -33,4 +33,12 @@ class AppRoutes {
   // ── Company & admin ─────────────────────────────────────────
   static const String companyHome = '/company';
   static const String adminHome = '/admin';
+
+  // ── Helper routes for notification deep-links ─────────────────
+  static String orderDetail(String id) => '$orders/$id';
+  static String disputeDetail(String id) => '/disputes/$id';
+  static String communityOrderDetail(String id) => '$communityOrders/$id';
+  static String listingDetail(String id) => '$browse?listing=$id';
+  static String offerDetail(String id) => '$incomingOffers?offer=$id';
+  static String verificationDetail(String id) => '$profile?verification=$id';
 }

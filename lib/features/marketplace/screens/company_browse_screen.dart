@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_colors.dart';
-import '../../data/models/listing_model.dart';
-import '../../data/services/seed/seed_listings.dart';
-import '../../shared/widgets/company_listing_card.dart';
-import '../../shared/widgets/empty_state.dart';
-import 'controllers/marketplace_controller.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../data/models/listing_model.dart';
+import '../../../data/services/seed/seed_listings.dart';
+import '../../../shared/widgets/company_listing_card.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../controllers/marketplace_controller.dart';
 import 'make_offer_screen.dart';
 
 /// Dense marketplace browse for company / admin cockpits.
