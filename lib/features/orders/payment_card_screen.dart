@@ -263,7 +263,7 @@ class _PaymentCardScreenState extends ConsumerState<PaymentCardScreen> {
                 ),
                 child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('⚠️', style: TextStyle(fontSize: 16)),
                     SizedBox(width: 10),
                     Expanded(

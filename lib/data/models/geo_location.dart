@@ -14,18 +14,15 @@ class GeoLocation {
     required String county,
     required String subCounty,
     required String area,
-    double? lat,
-    double? lng,
-    LocationSource source = LocationSource.selfReported,
+    this.lat,
+    this.lng,
+    this.source = LocationSource.selfReported,
   })  : county = county.trim(),
         subCounty = LocationCatalog.canonicalizeSubCounty(
           county,
           subCounty,
         ),
-        area = area.trim(),
-        lat = lat,
-        lng = lng,
-        source = source {
+        area = area.trim() {
     final countyValue = county.trim();
     final subCountyValue = subCounty.trim();
     if (countyValue.isEmpty || subCountyValue.isEmpty) {

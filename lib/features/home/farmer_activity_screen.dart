@@ -20,7 +20,7 @@ class FarmerActivityScreen extends ConsumerWidget {
     final user = ref.watch(authProvider);
     final incoming = user == null
         ? const <OfferModel>[]
-        : ref.watch(incomingOffersProvider(user.id)) ?? const <OfferModel>[];
+        : ref.watch(incomingOffersProvider(user.id));
 
     final offers = incoming
         .where((OfferModel? offer) {
