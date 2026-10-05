@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/constants/enums.dart';
 import '../../core/theme/role_theme.dart';
 import '../../data/models/order_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../shared/widgets/farmer_status_icon.dart';
 import '../../shared/widgets/segmented_toggle.dart';
 import 'controllers/orders_controller.dart';
-import 'order_detail_screen.dart';
 
-/// Farmer orders. Buying / Selling, then one line per order.
+/// Role-aware orders list.
+///
+/// Farmer sees Buying / Selling. Company sees Action needed /
+/// In progress / Completed / Issues, with denser rows.
 class OrdersListScreen extends ConsumerStatefulWidget {
   const OrdersListScreen({super.key});
 
@@ -20,7 +24,13 @@ class OrdersListScreen extends ConsumerStatefulWidget {
 class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
   int _tab = 0;
 
-  static const _tabs = ['Buying', 'Selling'];
+  static const _farmerTabs = ['Buying', 'Selling'];
+  static const _companyTabs = [
+    'Action needed',
+    'In progress',
+    'Completed',
+    'Issues',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +40,12 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final orders = _tab == 0
-        ? ref.watch(buyingOrdersProvider(user.id))
-        : ref.watch(sellingOrdersProvider(user.id));
+    final isCompany = user.role == UserRole.company;
+    final tabs = isCompany ? _companyTabs : _farmerTabs;
+
+    final orders = isCompany
+        ? _companyOrders(user.id, _tab)
+        : _farmerOrders(user.id, _tab);
 
     return Container(
       color: theme.background,
@@ -41,21 +54,24 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: SegmentedToggle(
-              options: _tabs,
+              options: tabs,
               selectedIndex: _tab,
               onChanged: (i) => setState(() => _tab = i),
+              expand: !isCompany,
             ),
           ),
           Expanded(
             child: orders.isEmpty
-                ? _empty(theme)
+                ? _empty(theme, isCompany, _tab)
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                     itemCount: orders.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, __) =>
+                        SizedBox(height: isCompany ? 8 : 10),
                     itemBuilder: (_, i) => _OrderRow(
                       order: orders[i],
-                      isBuying: _tab == 0,
+                      isBuyer: isCompany || _tab == 0,
+                      isCompany: isCompany,
                     ),
                   ),
           ),
@@ -64,7 +80,53 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
     );
   }
 
-  Widget _empty(RoleTheme theme) {
+  // ── Farmer: Buying / Selling ────────────────────────────────
+  List<OrderModel> _farmerOrders(String userId, int tab) {
+    return tab == 0
+        ? ref.watch(buyingOrdersProvider(userId))
+        : ref.watch(sellingOrdersProvider(userId));
+  }
+
+  // ── Company: Action / In progress / Completed / Issues ──────
+  List<OrderModel> _companyOrders(String userId, int tab) {
+    final all = ref.watch(buyingOrdersProvider(userId));
+    switch (tab) {
+      case 0: // Action needed
+        return all.where(_needsCompanyAction).toList();
+      case 1: // In progress
+        return all.where((o) {
+          return o.state == OrderState.paymentSecured ||
+              o.state == OrderState.pickupScheduled ||
+              o.state == OrderState.qualityConfirmed;
+        }).toList();
+      case 2: // Completed
+        return all.where((o) {
+          return o.state == OrderState.completed ||
+              o.state == OrderState.paymentReleased ||
+              o.state == OrderState.rated;
+        }).toList();
+      case 3: // Issues
+        return all.where((o) {
+          return o.state == OrderState.disputed ||
+              o.state == OrderState.declined ||
+              o.state == OrderState.expired;
+        }).toList();
+      default:
+        return [];
+    }
+  }
+
+  bool _needsCompanyAction(OrderModel o) {
+    return o.state == OrderState.accepted ||
+        o.state == OrderState.qualityConfirmed ||
+        o.state == OrderState.completed ||
+        o.state == OrderState.negotiation;
+  }
+
+  Widget _empty(RoleTheme theme, bool isCompany, int tab) {
+    final (title, subtitle) = isCompany
+        ? _companyEmptyCopy(tab)
+        : _farmerEmptyCopy(tab);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -78,7 +140,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              _tab == 0 ? 'No orders yet' : 'No sales yet',
+              title,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -87,9 +149,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              _tab == 0
-                  ? 'Find something you need and make an offer.'
-                  : 'Your listings will show orders here.',
+              subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -101,64 +161,108 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
       ),
     );
   }
+
+  (String, String) _farmerEmptyCopy(int tab) {
+    return tab == 0
+        ? ('No orders yet', 'Find something you need and make an offer.')
+        : ('No sales yet', 'Your listings will show orders here.');
+  }
+
+  (String, String) _companyEmptyCopy(int tab) {
+    switch (tab) {
+      case 0:
+        return ('Nothing to action', 'You are all caught up.');
+      case 1:
+        return ('No orders in progress', 'Active procurement shows here.');
+      case 2:
+        return ('No completed orders yet', 'Finished deals appear here.');
+      case 3:
+        return ('No issues', 'Disputes and declines would show here.');
+      default:
+        return ('No orders', '');
+    }
+  }
 }
+
+// ─────────────────────────────────────────────────────────────
+// Order row
+// ─────────────────────────────────────────────────────────────
 
 class _OrderRow extends StatelessWidget {
   final OrderModel order;
-  final bool isBuying;
+  final bool isBuyer;
+  final bool isCompany;
 
-  const _OrderRow({required this.order, required this.isBuying});
+  const _OrderRow({
+    required this.order,
+    required this.isBuyer,
+    required this.isCompany,
+  });
 
   @override
   Widget build(BuildContext context) {
     const theme = RoleTheme.farmer;
     final tone = farmerToneForOrder(order.state);
-    final counterparty = isBuying ? order.sellerName : order.buyerName;
-    final prefix = isBuying ? 'from' : 'to';
+    final counterparty = isBuyer ? order.sellerName : order.buyerName;
+    final prefix = isBuyer ? 'from' : 'to';
 
     return Material(
       color: theme.surface,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => OrderDetailScreen(orderId: order.id),
-          ),
-        ),
+        onTap: () => context.push('/orders/${order.id}'),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompany ? 12 : 14,
+            vertical: isCompany ? 10 : 14,
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: theme.border, width: 1.5),
           ),
           child: Row(
             children: [
-              FarmerStatusIcon(tone: tone, size: FarmerStatusSize.large),
-              const SizedBox(width: 14),
+              FarmerStatusIcon(
+                tone: tone,
+                size: isCompany
+                    ? FarmerStatusSize.small
+                    : FarmerStatusSize.large,
+              ),
+              SizedBox(width: isCompany ? 10 : 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      order.resourceType,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: theme.textPrimary,
-                        height: 1.2,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            order.resourceType,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: isCompany ? 14 : 16,
+                              fontWeight: FontWeight.w700,
+                              color: theme.textPrimary,
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                        if (isCompany) ...[
+                          const SizedBox(width: 8),
+                          _StateChip(state: order.state, theme: theme),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$prefix $counterparty  ·  ${_total()}  ·  ${order.quality}',
+                      '$prefix $counterparty  ·  ${_total()}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: isCompany ? 12 : 13,
                         color: theme.textSecondary,
                         height: 1.2,
                       ),
@@ -167,11 +271,12 @@ class _OrderRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right,
-                color: theme.textMuted,
-                size: 22,
-              ),
+              if (!isCompany)
+                Icon(
+                  Icons.chevron_right,
+                  color: theme.textMuted,
+                  size: 22,
+                ),
             ],
           ),
         ),
@@ -189,5 +294,61 @@ class _OrderRow extends StatelessWidget {
       buf.write(s[i]);
     }
     return 'KES ${buf.toString()}';
+  }
+}
+
+class _StateChip extends StatelessWidget {
+  final OrderState state;
+  final RoleTheme theme;
+
+  const _StateChip({required this.state, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color) = _style();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  (String, Color) _style() {
+    switch (state) {
+      case OrderState.requested:
+        return ('Requested', theme.accent);
+      case OrderState.negotiation:
+        return ('Negotiating', theme.accent);
+      case OrderState.accepted:
+        return ('Payment due', theme.danger);
+      case OrderState.paymentSecured:
+        return ('Awaiting pickup', theme.info);
+      case OrderState.pickupScheduled:
+        return ('Pickup set', theme.info);
+      case OrderState.qualityConfirmed:
+        return ('Confirm quality', theme.accent);
+      case OrderState.completed:
+        return ('Release payment', theme.accent);
+      case OrderState.paymentReleased:
+        return ('Paid', theme.primary);
+      case OrderState.rated:
+        return ('Rated', theme.primary);
+      case OrderState.declined:
+        return ('Declined', theme.danger);
+      case OrderState.expired:
+        return ('Expired', theme.textMuted);
+      case OrderState.disputed:
+        return ('Disputed', theme.danger);
+    }
   }
 }

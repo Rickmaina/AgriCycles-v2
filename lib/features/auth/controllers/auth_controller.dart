@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/enums.dart';
+import '../../../data/models/geo_location.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/result.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../data/services/company_profile_service.dart';
 
 class AuthController {
   AuthController(this._ref);
@@ -107,6 +109,23 @@ class AuthController {
       cropDetails: cropDetails,
       farmScale: farmScale,
     );
+  }
+
+  // ─── COMPANY ONBOARDING (local only for now) ─────────────
+  void completeCompanyOnboarding({
+    required String businessName,
+    required String businessType,
+    required String contactName,
+    String? descriptor,
+    required GeoLocation base,
+  }) {
+    _ref.read(companyProfileProvider.notifier).save(
+          businessName: businessName,
+          businessType: businessType,
+          contactName: contactName,
+          descriptor: descriptor,
+          base: base,
+        );
   }
 
   // ─── LOGOUT ───────────────────────────────────────────────

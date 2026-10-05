@@ -19,6 +19,7 @@ class AppRoutes {
   static const String activity = '/activity';
   static const String incomingOffers = '/incoming-offers';
   static const String orders = '/orders';
+  static const String orderDetail = '/orders/:id';
   static const String profile = '/profile';
   static const String notifications = '/notifications';
   static const String help = '/help';
@@ -31,11 +32,12 @@ class AppRoutes {
   static const String communityOrders = '/community-orders';
 
   // ── Company & admin ─────────────────────────────────────────
+  static const String companyOnboarding = '/onboarding/company';
+  static const String companyPending = '/company/pending';
   static const String companyHome = '/company';
   static const String adminHome = '/admin';
 
   // ── Helper routes for notification deep-links ─────────────────
-  static String orderDetail(String id) => '$orders/$id';
   static String disputeDetail(String id) => '/disputes/$id';
   static String communityOrderDetail(String id) => '$communityOrders/$id';
   static String listingDetail(String id) => '$browse?listing=$id';

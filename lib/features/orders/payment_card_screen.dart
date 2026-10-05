@@ -261,7 +261,7 @@ class _PaymentCardScreenState extends ConsumerState<PaymentCardScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: _amber.withValues(alpha: 0.35)),
                 ),
-                child: Row(
+                child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     Text('⚠️', style: TextStyle(fontSize: 16)),

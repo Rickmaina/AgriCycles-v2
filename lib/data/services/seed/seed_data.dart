@@ -34,7 +34,7 @@ class SeedData {
       email: 'ops@ksco.co.ke',
       role: UserRole.company,
       county: 'Kisumu',
-      subCounty: 'Ahero',
+      subCounty: 'Nyando',
       area: 'Kano',
       verificationStatus: VerificationStatus.approved,
     ),

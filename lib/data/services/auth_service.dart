@@ -198,6 +198,27 @@ class AuthService extends StateNotifier<UserModel?> {
   }
 
   // ─────────────────────────────────────────────────────────
+  // DEV-ONLY — MOCK VERIFICATION CONTROLS
+  // Used by the pending-verification screen's dev toggle in
+  // kDebugMode. Safe to remove when the real admin flow lands.
+  // ─────────────────────────────────────────────────────────
+  void mockApproveVerification() {
+    final u = state;
+    if (u == null) return;
+    state = u.copyWith(
+      verificationStatus: VerificationStatus.approved,
+    );
+  }
+
+  void mockRejectVerification() {
+    final u = state;
+    if (u == null) return;
+    state = u.copyWith(
+      verificationStatus: VerificationStatus.rejected,
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
   // LOCAL-ONLY (backend doesn't cover yet)
   // ─────────────────────────────────────────────────────────
   void completeOnboarding({

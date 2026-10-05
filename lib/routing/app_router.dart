@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/constants/app_routes.dart';
 import '../data/services/auth_service.dart';
+import '../data/services/company_profile_service.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
 import '../features/buy_requests/screens/browse_needs_screen.dart';
@@ -21,8 +22,11 @@ import '../features/marketplace/screens/market_home_screen.dart';
 import '../features/marketplace/screens/my_listings_screen.dart';
 import '../features/notifications/screens/notifications_screen.dart';
 import '../features/onboarding/farm_location_screen.dart';
+import '../features/onboarding/company_onboarding_screen.dart';
+import '../features/onboarding/company_pending_verification_screen.dart';
 import '../features/onboarding/get_started_screen.dart';
 import '../features/onboarding/onboarding_complete_screen.dart';
+import '../features/orders/order_detail_screen.dart';
 import '../features/orders/orders_list_screen.dart';
 import '../features/profile/profile_screen.dart';
 import 'route_guards.dart';
@@ -41,8 +45,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     redirect: (context, state) {
       final user = ref.read(authProvider);
+      final profile = ref.read(companyProfileProvider);
       return redirectFor(
         user: user,
+        companyProfile: profile,
         location: state.matchedLocation,
       );
     },
@@ -66,6 +72,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.onboardingComplete,
         builder: (_, __) => const OnboardingCompleteScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.companyOnboarding,
+        builder: (_, __) => const CompanyOnboardingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.companyPending,
+        builder: (_, __) => const CompanyPendingVerificationScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => FarmerShell(child: child),
@@ -101,6 +115,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.orders,
             builder: (_, __) => const OrdersListScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.orderDetail,
+            builder: (_, state) {
+              final id = state.pathParameters['id'] ?? '';
+              return OrderDetailScreen(orderId: id);
+            },
           ),
           GoRoute(
             path: AppRoutes.profile,

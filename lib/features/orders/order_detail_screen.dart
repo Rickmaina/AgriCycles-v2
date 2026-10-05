@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/enums.dart';
 import '../../core/theme/role_theme.dart';
-import '../../core/utils/extensions.dart';
 import '../../data/models/order_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../domain/transport_estimator.dart';
@@ -14,8 +13,8 @@ import '../disputes/screens/raise_dispute_screen.dart';
 import 'controllers/orders_controller.dart';
 import 'rate_order_screen.dart';
 
-/// Farmer's order detail. Large status timeline, payment strip,
-/// two actions max.
+/// Role-aware order detail. Farmer sees a large visual timeline with
+/// up to two actions. Company sees the same timeline with buyer CTAs.
 class OrderDetailScreen extends ConsumerWidget {
   final String orderId;
   const OrderDetailScreen({super.key, required this.orderId});
@@ -34,6 +33,7 @@ class OrderDetailScreen extends ConsumerWidget {
     }
 
     final isBuyer = user.id == order.buyerId;
+    final isCompany = user.role == UserRole.company;
 
     return Scaffold(
       backgroundColor: theme.background,
@@ -54,7 +54,7 @@ class OrderDetailScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 children: [
-                  _paymentStrip(theme, order),
+                  _paymentStrip(theme, order, isCompany),
                   const SizedBox(height: 16),
                   _summary(theme, order, isBuyer),
                   const SizedBox(height: 20),
@@ -70,12 +70,23 @@ class OrderDetailScreen extends ConsumerWidget {
                   _tracker(order),
                   const SizedBox(height: 20),
                   _route(theme, order),
+                  if (!order.state.isTerminal &&
+                      order.state != OrderState.rated) ...[
+                    const SizedBox(height: 20),
+                    _issueLink(context, order),
+                  ],
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-              child: _actionButton(context, ref, order, isBuyer),
+              child: _actionButton(
+                context,
+                ref,
+                order,
+                isBuyer: isBuyer,
+                isCompany: isCompany,
+              ),
             ),
           ],
         ),
@@ -83,8 +94,11 @@ class OrderDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _paymentStrip(RoleTheme theme, OrderModel order) {
-    final (label, color, icon) = _paymentStatus(order);
+  // ─────────────────────────────────────────────────────────────
+  // Payment strip
+  // ─────────────────────────────────────────────────────────────
+  Widget _paymentStrip(RoleTheme theme, OrderModel order, bool isCompany) {
+    final (label, color, icon) = _paymentStatus(order, isCompany);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -124,7 +138,10 @@ class OrderDetailScreen extends ConsumerWidget {
     );
   }
 
-  (String, Color, IconData) _paymentStatus(OrderModel order) {
+  (String, Color, IconData) _paymentStatus(
+    OrderModel order,
+    bool isCompany,
+  ) {
     const theme = RoleTheme.farmer;
     if (order.state == OrderState.paymentReleased ||
         order.state == OrderState.completed ||
@@ -137,9 +154,15 @@ class OrderDetailScreen extends ConsumerWidget {
     if (order.state == OrderState.disputed) {
       return ('Payment on hold', theme.danger, Icons.pause_circle);
     }
+    if (isCompany && order.state == OrderState.accepted) {
+      return ('Submit payment proof', theme.accent, Icons.upload_file);
+    }
     return ('Pay on delivery', theme.accent, Icons.schedule);
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // Summary
+  // ─────────────────────────────────────────────────────────────
   Widget _summary(RoleTheme theme, OrderModel order, bool isBuyer) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -161,7 +184,9 @@ class OrderDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            isBuyer ? 'from ${order.sellerName}' : 'to ${order.buyerName}',
+            isBuyer
+                ? 'from ${order.sellerName}'
+                : 'to ${order.buyerName}',
             style: TextStyle(
               fontSize: 13,
               color: theme.textSecondary,
@@ -188,19 +213,14 @@ class OrderDetailScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Quality: ${order.quality}',
-            style: TextStyle(
-              fontSize: 13,
-              color: theme.textSecondary,
-            ),
-          ),
         ],
       ),
     );
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // Status tracker
+  // ─────────────────────────────────────────────────────────────
   Widget _tracker(OrderModel order) {
     if (order.state.isBranch) {
       final label = switch (order.state) {
@@ -243,6 +263,9 @@ class OrderDetailScreen extends ConsumerWidget {
     );
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // Route
+  // ─────────────────────────────────────────────────────────────
   Widget _route(RoleTheme theme, OrderModel order) {
     final km = TransportEstimator.distanceKm(
       pickupCounty: order.pickupCounty,
@@ -333,20 +356,45 @@ class OrderDetailScreen extends ConsumerWidget {
     );
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // Issue link
+  // ─────────────────────────────────────────────────────────────
+  Widget _issueLink(BuildContext context, OrderModel order) {
+    return Center(
+      child: TextButton.icon(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => RaiseDisputeScreen(order: order),
+          ),
+        ),
+        icon: const Icon(Icons.report_problem_outlined, size: 18),
+        label: const Text('Report a problem'),
+        style: TextButton.styleFrom(
+          foregroundColor: RoleTheme.farmer.danger,
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Action button
+  // ─────────────────────────────────────────────────────────────
   Widget _actionButton(
     BuildContext context,
     WidgetRef ref,
-    OrderModel order,
-    bool isBuyer,
-  ) {
+    OrderModel order, {
+    required bool isBuyer,
+    required bool isCompany,
+  }) {
     final controller = ref.read(ordersControllerProvider);
-    final label = _actionLabel(order.state, isBuyer);
+    final (label, icon) = _actionLabel(order.state, isBuyer, isCompany);
     if (label == null) return const SizedBox.shrink();
 
     return FarmerActionButton(
       label: label,
-      icon: _actionIcon(order.state),
+      icon: icon,
       onPressed: () {
+        // Rate path
         if (order.state == OrderState.paymentReleased) {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -355,122 +403,49 @@ class OrderDetailScreen extends ConsumerWidget {
           );
           return;
         }
-        if (order.state == OrderState.accepted && isBuyer) {
-          _confirmAction(
-            context,
-            title: 'Secure payment?',
-            message:
-                'This will move the order to payment secured and notify the seller.',
-            onConfirm: () {
-              controller.advance(order.id);
-              context.showSnack('Payment secured');
-            },
-          );
-          return;
-        }
-        if (order.state == OrderState.completed && isBuyer) {
-          _confirmAction(
-            context,
-            title: 'Release payment?',
-            message:
-                'Confirm that the delivery was received and the invoice should be released.',
-            onConfirm: () {
-              controller.advance(order.id);
-              context.showSnack('Payment released');
-            },
-          );
-          return;
-        }
-        if (order.state == OrderState.qualityConfirmed && isBuyer) {
-          _confirmAction(
-            context,
-            title: 'Confirm quality?',
-            message:
-                'This will mark the order as complete and close the fulfilment loop.',
-            onConfirm: () {
-              controller.advance(order.id);
-              context.showSnack('Order completed');
-            },
-          );
-          return;
-        }
-        if (order.state == OrderState.disputed) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => RaiseDisputeScreen(order: order),
-            ),
-          );
-          return;
-        }
+        // All other state advances go through the controller
         controller.advance(order.id);
       },
     );
   }
 
-  void _confirmAction(
-    BuildContext context, {
-    required String title,
-    required String message,
-    required VoidCallback onConfirm,
-  }) {
-    showDialog<void>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String? _actionLabel(OrderState state, bool isBuyer) {
+  (String?, IconData) _actionLabel(
+    OrderState state,
+    bool isBuyer,
+    bool isCompany,
+  ) {
     switch (state) {
       case OrderState.requested:
-        return isBuyer ? null : 'Accept';
+        return isBuyer ? (null, Icons.arrow_forward) : ('Accept', Icons.check);
       case OrderState.negotiation:
-        return isBuyer ? null : 'Accept';
+        return isBuyer
+            ? (null, Icons.arrow_forward)
+            : ('Accept price', Icons.check);
       case OrderState.accepted:
-        return isBuyer ? 'Pay now' : null;
+        if (!isBuyer) return (null, Icons.arrow_forward);
+        return isCompany
+            ? ('Submit payment proof', Icons.upload_file)
+            : ('Pay now', Icons.payment);
       case OrderState.paymentSecured:
-        return 'Waiting for pickup';
+        return ('Waiting for pickup', Icons.local_shipping_outlined);
       case OrderState.pickupScheduled:
-        return 'Waiting for delivery';
+        return ('Waiting for delivery', Icons.local_shipping_outlined);
       case OrderState.qualityConfirmed:
-        return isBuyer ? 'Confirm' : null;
+        return isBuyer
+            ? (isCompany ? 'Confirm quality' : 'Confirm', Icons.check)
+            : (null, Icons.arrow_forward);
       case OrderState.completed:
-        return 'Release payment';
+        return ('Release payment', Icons.payments_outlined);
       case OrderState.paymentReleased:
-        return 'Rate this order';
+        return ('Rate this order', Icons.star_outline);
       default:
-        return null;
+        return (null, Icons.arrow_forward);
     }
   }
 
-  IconData _actionIcon(OrderState state) {
-    switch (state) {
-      case OrderState.paymentReleased:
-        return Icons.star_outline;
-      case OrderState.qualityConfirmed:
-        return Icons.check;
-      case OrderState.accepted:
-        return Icons.payment;
-      default:
-        return Icons.arrow_forward;
-    }
-  }
-
+  // ─────────────────────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────────────────────
   String _total(OrderModel order) {
     final total = order.quantity * order.pricePerUnit;
     final rounded = total.round();

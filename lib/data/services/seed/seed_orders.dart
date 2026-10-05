@@ -56,7 +56,7 @@ class SeedOrders {
       createdAt: _now.subtract(const Duration(days: 3)),
       updatedAt: _now.subtract(const Duration(hours: 8)),
       pickupCounty: 'Kisumu',
-      pickupSubCounty: 'Ahero',
+      pickupSubCounty: 'Nyando',
       pickupArea: 'Kano',
       deliveryCounty: 'Kiambu',
       deliverySubCounty: 'Ruiru',
