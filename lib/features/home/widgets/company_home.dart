@@ -122,7 +122,7 @@ class _PrimaryActions extends StatelessWidget {
           child: _ActionCard(
             icon: Icons.search,
             label: 'Find\nSupply',
-            onTap: () => context.go(AppRoutes.browse),
+            onTap: () => context.go(AppRoutes.market),
             theme: theme,
           ),
         ),
@@ -131,7 +131,7 @@ class _PrimaryActions extends StatelessWidget {
           child: _ActionCard(
             icon: Icons.campaign_outlined,
             label: 'Post\na Need',
-            onTap: () => context.go(AppRoutes.postNeed),
+            onTap: () => context.push(AppRoutes.postNeed),
             theme: theme,
           ),
         ),
@@ -140,7 +140,7 @@ class _PrimaryActions extends StatelessWidget {
           child: _ActionCard(
             icon: Icons.receipt_long_outlined,
             label: 'My\nOrders',
-            onTap: () => context.go(AppRoutes.orders),
+            onTap: () => context.push(AppRoutes.orders),
             theme: theme,
           ),
         ),
@@ -236,7 +236,7 @@ class _AttentionBlock extends ConsumerWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: () => context.go(AppRoutes.orders),
+              onPressed: () => context.push(AppRoutes.orders),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 minimumSize: Size.zero,
@@ -443,7 +443,7 @@ class _SupplyNearYou extends ConsumerWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton(
-            onPressed: () => context.go(AppRoutes.browse),
+            onPressed: () => context.go(AppRoutes.market),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               minimumSize: Size.zero,
@@ -487,7 +487,7 @@ class _SupplyRow extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
-        onTap: () => context.go(AppRoutes.browse),
+        onTap: () => context.go(AppRoutes.market),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
@@ -574,7 +574,7 @@ class _OpenNeedsSummary extends ConsumerWidget {
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
-        onTap: () => context.go(AppRoutes.browseNeeds),
+        onTap: () => context.push(AppRoutes.browseNeeds),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           decoration: BoxDecoration(

@@ -25,6 +25,21 @@ class SeedListings {
     'Other agricultural waste',
   ];
 
+  /// Auto-derived category for each resource in the catalogue.
+  /// When a farmer taps a chip, the category auto-fills from this map.
+  /// Free-text resources keep the user-chosen category.
+  static const Map<String, String> categoryByResource = {
+    'Maize stalks': 'Crop residue',
+    'Sugarcane bagasse': 'By-product',
+    'Maize cobs': 'Crop residue',
+    'Maize husks': 'Crop residue',
+    'Wheat straw': 'Crop residue',
+    'Rice husks': 'By-product',
+    'Napier grass': 'Crop residue',
+    'Manure': 'Animal waste',
+    'Other  waste': 'Crop residue',
+  };
+
   static final List<ListingModel> all = [
     ListingModel(
       id: 'l1',
@@ -46,6 +61,7 @@ class SeedListings {
         source: LocationSource.deviceCaptured,
       ),
       sellerVerification: VerificationStatus.approved,
+      status: ListingStatus.active,
     ),
     ListingModel(
       id: 'l2',
@@ -80,6 +96,7 @@ class SeedListings {
         source: LocationSource.adminVerified,
       ),
       sellerVerification: VerificationStatus.approved,
+      status: ListingStatus.active,
     ),
     ListingModel(
       id: 'l4',
@@ -119,6 +136,7 @@ class SeedListings {
         source: LocationSource.adminVerified,
       ),
       sellerVerification: VerificationStatus.approved,
+      status: ListingStatus.active,
     ),
     ListingModel(
       id: 'l6',

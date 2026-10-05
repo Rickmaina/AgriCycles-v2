@@ -56,3 +56,22 @@ class SeedData {
     return null;
   }
 }
+
+/// Admin-set standard prices per resource (KES per kg).
+/// Only Sugarcane bagasse currently has a fixed price per the
+/// product decision; all other resources use the seller's asking price.
+///
+/// This map is the seed for what will later live in an admin
+/// `resource_standard_prices` table. When the admin console lands,
+/// this becomes a provider read rather than a hardcoded map.
+class SeedPrices {
+  SeedPrices._();
+
+  static const Map<String, double> perKgStandard = {
+    'Sugarcane bagasse': 5.0,
+  };
+
+  static double? forResource(String resourceType) {
+    return perKgStandard[resourceType.trim()];
+  }
+}

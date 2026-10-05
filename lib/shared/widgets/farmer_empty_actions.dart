@@ -35,7 +35,7 @@ class FarmerEmptyActions extends StatelessWidget {
           icon: Icons.sell_outlined,
           title: 'Sell something',
           subtitle: 'List what you have',
-          onTap: () => context.go(AppRoutes.createListing),
+          onTap: () => context.push(AppRoutes.createListing),
         ),
         const SizedBox(height: 14),
         FarmerTile(

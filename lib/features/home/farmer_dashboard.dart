@@ -33,8 +33,6 @@ class FarmerDashboard extends ConsumerWidget {
           }).toList();
     final unreadCount =
         user == null ? 0 : ref.watch(myUnreadCountProvider(user.id));
-    final farmerName = user?.name ?? 'Farmer';
-    final farmerLocation = _locationLabel(user);
 
     final recentOrders = myOrders.take(2).map((order) {
       final statusColor = order.state == OrderState.accepted
@@ -66,29 +64,14 @@ class FarmerDashboard extends ConsumerWidget {
       );
     }).toList();
 
-    return Scaffold(
-      backgroundColor: _bg,
-      body: RefreshIndicator(
-        color: _green,
-        onRefresh: () async {
-          await Future<void>.delayed(const Duration(milliseconds: 800));
-        },
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: _Header(
-                name: farmerName,
-                location: farmerLocation,
-                unreadCount: unreadCount,
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 4)),
-            SliverPadding(
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverToBoxAdapter(
                 child: _HeroActions(
-                  onSell: () => context.go(AppRoutes.createListing),
-                  onBuy: () => context.go(AppRoutes.browse),
+                  onSell: () => context.push(AppRoutes.createListing),
+                  onBuy: () => context.go(AppRoutes.market),
                 ),
               ),
             ),
@@ -110,7 +93,7 @@ class FarmerDashboard extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
               sliver: SliverToBoxAdapter(
                 child: GestureDetector(
-                  onTap: () => context.go(AppRoutes.browse),
+                  onTap: () => context.go(AppRoutes.market),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -129,9 +112,7 @@ class FarmerDashboard extends ConsumerWidget {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
@@ -179,159 +160,6 @@ class FarmerDashboard extends ConsumerWidget {
     if (type.contains('fruit')) return '🍊';
     if (type.contains('hay')) return '🌾';
     return '🌿';
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({
-    required this.name,
-    required this.location,
-    required this.unreadCount,
-  });
-
-  final String name;
-  final String location;
-  final int unreadCount;
-
-  String get _greeting {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 12,
-        left: 16,
-        right: 16,
-        bottom: 20,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2E7D32),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                  child: Text('🌱', style: TextStyle(fontSize: 18)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AgriCycles',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A2E1A),
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  Text(
-                    'Marketplace',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF8FA888),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Stack(
-                children: [
-                  IconButton(
-                    onPressed: () => context.go(AppRoutes.notifications),
-                    icon: const Icon(
-                      Icons.notifications_outlined,
-                      color: Color(0xFF546E4F),
-                    ),
-                    style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFFF0F7F0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  if (unreadCount > 0)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        width: 18,
-                        height: 18,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFDC2626),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            unreadCount > 9 ? '9+' : unreadCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '$_greeting 👋',
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF8FA888),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'Welcome back, $name',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A2E1A),
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on_outlined,
-                size: 14,
-                color: Color(0xFF8FA888),
-              ),
-              const SizedBox(width: 3),
-              Text(
-                location,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF8FA888),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -613,7 +441,7 @@ class _SectionHeader extends StatelessWidget {
         ),
         const Spacer(),
         GestureDetector(
-          onTap: () => context.go(AppRoutes.browse),
+          onTap: () => context.go(AppRoutes.market),
           child: const Text(
             'Filter',
             style: TextStyle(
@@ -681,7 +509,7 @@ class _ListingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.go(AppRoutes.browse),
+      onTap: () => context.go(AppRoutes.market),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(

@@ -48,7 +48,7 @@ class MyListingsScreen extends ConsumerWidget {
                 icon: Icons.sell_outlined,
                 title: 'List something',
                 subtitle: 'Sell what you have',
-                onTap: () => context.go(AppRoutes.createListing),
+                onTap: () => context.push(AppRoutes.createListing),
               ),
             ],
           ),
