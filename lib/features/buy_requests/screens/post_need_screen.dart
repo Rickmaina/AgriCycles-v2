@@ -10,6 +10,7 @@ import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
 import '../../../shared/widgets/farmer_action_button.dart';
 import '../../../shared/widgets/location_picker.dart';
+import '../../../shared/widgets/registered_location_field.dart';
 import '../controllers/buy_request_controller.dart';
 
 /// Post a need. Farmer version: resource, quantity, price, location.
@@ -243,7 +244,7 @@ class _PostNeedScreenState extends ConsumerState<PostNeedScreen> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      LocationPicker(
+                      RegisteredLocationField(
                         initial: _location,
                         onChanged: (sel) {
                           setState(() {

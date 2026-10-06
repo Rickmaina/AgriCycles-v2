@@ -10,6 +10,7 @@ import '../../../data/models/pre_order_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
 import '../../../shared/widgets/location_picker.dart';
+import '../../../shared/widgets/registered_location_field.dart';
 import '../controllers/pre_order_controller.dart';
 
 class CommunityOrderDetailScreen extends ConsumerWidget {
@@ -667,7 +668,7 @@ class _ContributeFormState extends ConsumerState<_ContributeForm> {
                 TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
-          LocationPicker(
+          RegisteredLocationField(
             initial: _location,
             onChanged: (sel) => setState(() {
               _location = sel;

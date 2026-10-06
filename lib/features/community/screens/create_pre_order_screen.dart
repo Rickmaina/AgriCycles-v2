@@ -10,6 +10,7 @@ import '../../../data/services/auth_service.dart';
 import '../../../domain/validators.dart';
 import '../../../features/buy_requests/screens/post_need_screen.dart';
 import '../../../shared/widgets/location_picker.dart';
+import '../../../shared/widgets/registered_location_field.dart';
 import '../controllers/pre_order_controller.dart';
 
 class CreatePreOrderScreen extends ConsumerStatefulWidget {
@@ -293,7 +294,7 @@ class _CreatePreOrderScreenState extends ConsumerState<CreatePreOrderScreen> {
                 style: TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
               const SizedBox(height: 14),
-              LocationPicker(
+              RegisteredLocationField(
                 initial: _location,
                 onChanged: (sel) => setState(() {
                   _location = sel;

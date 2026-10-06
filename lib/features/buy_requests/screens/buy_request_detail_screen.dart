@@ -12,6 +12,7 @@ import '../../../domain/transport_estimator.dart';
 import '../../../domain/validators.dart';
 import '../../../shared/widgets/farmer_action_button.dart';
 import '../../../shared/widgets/location_picker.dart';
+import '../../../shared/widgets/registered_location_field.dart';
 import '../controllers/buy_request_controller.dart';
 
 /// Role-aware buy-request detail.
@@ -525,7 +526,7 @@ class _SellerOfferFormState extends ConsumerState<_SellerOfferForm> {
             ),
           ),
           const SizedBox(height: 10),
-          LocationPicker(
+          RegisteredLocationField(
             initial: _location,
             onChanged: (sel) {
               setState(() {
