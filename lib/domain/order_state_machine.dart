@@ -107,6 +107,16 @@ class OrderStateMachine {
   }) =>
       currentActor(state) == actor && nextState(state) != null;
 
+  /// Whether the order can move from `accepted` to `paymentSecured`.
+  /// Requires the buyer to have submitted payment evidence AND an
+  /// admin (or the seller) to have verified it.
+  ///
+  /// For now, the frontend keeps a lightweight boolean on the order
+  /// that becomes true when the payment card is submitted. Real
+  /// verification is server-side per contract §4.14.
+  static bool canAdvanceFromAccepted({required bool paymentVerified}) =>
+      paymentVerified;
+
   /// Branch transitions available from any state.
   static const Map<OrderState, List<OrderState>> branchTransitions = {
     OrderState.requested: [OrderState.declined, OrderState.expired],

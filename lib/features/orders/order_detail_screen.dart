@@ -11,7 +11,8 @@ import '../../shared/widgets/farmer_action_button.dart';
 import '../../shared/widgets/status_tracker.dart';
 import '../disputes/screens/raise_dispute_screen.dart';
 import 'controllers/orders_controller.dart';
-import 'rate_order_screen.dart';
+import 'payment_card_screen.dart';
+import 'widgets/rate_order_dialogs.dart';
 
 /// Role-aware order detail. Farmer sees a large visual timeline with
 /// up to two actions. Company sees the same timeline with buyer CTAs.
@@ -396,13 +397,29 @@ class OrderDetailScreen extends ConsumerWidget {
       onPressed: () {
         // Rate path
         if (order.state == OrderState.paymentReleased) {
+          showRateOrderDialog(
+            context: context,
+            ref: ref,
+            orderId: order.id,
+          );
+          return;
+        }
+
+        // Payment path: buyer of an accepted order must submit evidence
+        // before the state moves to paymentSecured.
+        if (order.state == OrderState.accepted && isBuyer) {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => RateOrderScreen(orderId: order.id),
+              builder: (_) => PaymentCardScreen(
+                orderId: order.id,
+                amount: order.quantity * order.pricePerUnit,
+                resourceName: order.resourceType,
+              ),
             ),
           );
           return;
         }
+
         // All other state advances go through the controller
         controller.advance(order.id);
       },
