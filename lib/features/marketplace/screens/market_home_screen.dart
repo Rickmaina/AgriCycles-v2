@@ -10,11 +10,10 @@ import '../../../data/models/pre_order_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../domain/transport_estimator.dart';
 import '../../buy_requests/controllers/buy_request_controller.dart';
-import '../../buy_requests/screens/buy_request_detail_screen.dart';
 import '../../community/controllers/pre_order_controller.dart';
 import '../../community/screens/community_order_detail_screen.dart';
 import '../controllers/marketplace_controller.dart';
-import 'listing_detail_screen.dart';
+import '../widgets/offer_flow_dialogs.dart';
 
 // ─────────────────────────────────────────────────────────────
 // Filter taxonomy
@@ -279,17 +278,20 @@ class _MarketHomeScreenState extends ConsumerState<MarketHomeScreen> {
         final listing = ref
             .read(allListingsProvider)
             .firstWhere((l) => l.id == card.id);
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ListingDetailScreen(listing: listing),
-          ),
+        showListingOfferFlow(
+          context: context,
+          ref: ref,
+          listing: listing,
         );
         break;
       case MarketCardKind.wanted:
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => BuyRequestDetailScreen(requestId: card.id),
-          ),
+        final request = ref
+            .read(openBuyRequestsProvider)
+            .firstWhere((r) => r.id == card.id);
+        showBuyRequestOfferFlow(
+          context: context,
+          ref: ref,
+          request: request,
         );
         break;
       case MarketCardKind.community:

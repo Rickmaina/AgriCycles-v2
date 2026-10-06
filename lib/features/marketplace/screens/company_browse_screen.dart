@@ -5,9 +5,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/listing_model.dart';
 import '../../../data/services/seed/seed_listings.dart';
 import '../../../shared/widgets/company_listing_card.dart';
+import '../widgets/offer_flow_dialogs.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../controllers/marketplace_controller.dart';
-import 'make_offer_screen.dart';
 
 /// Dense marketplace browse for company / admin cockpits.
 class CompanyBrowseScreen extends ConsumerStatefulWidget {
@@ -75,10 +75,10 @@ class _CompanyBrowseScreenState extends ConsumerState<CompanyBrowseScreen> {
                     final l = results[i];
                     return CompanyListingCard(
                       listing: l,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MakeOfferScreen(listing: l),
-                        ),
+                      onTap: () => showListingOfferFlow(
+                        context: context,
+                        ref: ref,
+                        listing: l,
                       ),
                     );
                   },

@@ -8,8 +8,8 @@ import '../../../data/services/seed/seed_listings.dart';
 import '../../../shared/widgets/farmer_distance.dart';
 import '../../../shared/widgets/farmer_empty_actions.dart';
 import '../../../shared/widgets/listing_card.dart';
+import '../widgets/offer_flow_dialogs.dart';
 import '../controllers/marketplace_controller.dart';
-import 'farmer_listing_detail_screen.dart';
 
 /// Farmer-facing browse. Photo-first cards, one price, one location.
 class BrowseScreen extends ConsumerStatefulWidget {
@@ -97,11 +97,10 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                           listing: l,
                           from: from,
                         ),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                FarmerListingDetailScreen(listing: l),
-                          ),
+                        onTap: () => showListingOfferFlow(
+                          context: context,
+                          ref: ref,
+                          listing: l,
                         ),
                       );
                     },
