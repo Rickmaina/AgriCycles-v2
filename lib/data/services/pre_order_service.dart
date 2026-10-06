@@ -26,7 +26,125 @@ class PreOrderState {
 
 class PreOrderService extends StateNotifier<PreOrderState> {
   PreOrderService()
-      : super(const PreOrderState(preOrders: [], contributions: []));
+      : super(PreOrderState(
+          preOrders: _seedPreOrders(),
+          contributions: _seedContributions(),
+        ));
+
+  static List<PreOrderModel> _seedPreOrders() {
+    final now = DateTime.now();
+    return [
+      PreOrderModel(
+        id: 'po1',
+        buyerId: 'u3',
+        buyerName: 'Kenya Sugarcane Co.',
+        buyerIsCompany: true,
+        resourceType: 'Maize stalks',
+        category: 'Crop residue',
+        targetQuantity: 20,
+        unit: 'tonnes',
+        offeredPricePerUnit: 4000,
+        description:
+            'Aggregate across farms. Pickup coordinated by Admin.',
+        deliveryLocation: GeoLocation(
+          county: 'Kisumu',
+          subCounty: 'Nyando',
+          area: 'Ahero',
+        ),
+        deadline: now.add(const Duration(days: 10)),
+        createdAt: now.subtract(const Duration(days: 2)),
+        status: PreOrderStatus.open,
+      ),
+      PreOrderModel(
+        id: 'po2',
+        buyerId: 'u10',
+        buyerName: 'Rift Valley Dairy',
+        buyerIsCompany: true,
+        resourceType: 'Cow manure',
+        category: 'Animal waste',
+        targetQuantity: 10,
+        unit: 'tonnes',
+        offeredPricePerUnit: 1800,
+        description: 'Need 10 tonnes for composting. Bulk price.',
+        deliveryLocation: GeoLocation(
+          county: 'Nakuru',
+          subCounty: 'Naivasha',
+          area: 'Industrial Area',
+        ),
+        deadline: now.add(const Duration(days: 5)),
+        createdAt: now.subtract(const Duration(days: 1)),
+        status: PreOrderStatus.open,
+      ),
+    ];
+  }
+
+  static List<CommunityContributionModel> _seedContributions() {
+    final now = DateTime.now();
+    return [
+      CommunityContributionModel(
+        id: 'cc1',
+        preOrderId: 'po1',
+        farmerId: 'u1',
+        farmerName: 'Grace Wanjiku',
+        committedQuantity: 3,
+        acceptedQuantity: 3,
+        pricePerUnit: 4000,
+        pickupLocation: GeoLocation(
+          county: 'Kiambu',
+          subCounty: 'Ruiru',
+          area: 'Kamakis',
+        ),
+        status: ContributionStatus.confirmed,
+        createdAt: now.subtract(const Duration(days: 1)),
+      ),
+      CommunityContributionModel(
+        id: 'cc2',
+        preOrderId: 'po1',
+        farmerId: 'u5',
+        farmerName: 'Joseph Mwangi',
+        committedQuantity: 2.5,
+        acceptedQuantity: 2.5,
+        pricePerUnit: 4000,
+        pickupLocation: GeoLocation(
+          county: 'Kakamega',
+          subCounty: 'Mumias West',
+          area: 'Mumias Central',
+        ),
+        status: ContributionStatus.confirmed,
+        createdAt: now.subtract(const Duration(hours: 20)),
+      ),
+      CommunityContributionModel(
+        id: 'cc3',
+        preOrderId: 'po1',
+        farmerId: 'u7',
+        farmerName: 'Mary Njeri',
+        committedQuantity: 1.5,
+        pricePerUnit: 4000,
+        pickupLocation: GeoLocation(
+          county: 'Kiambu',
+          subCounty: 'Gatundu North',
+          area: 'Gituamba',
+        ),
+        status: ContributionStatus.committed,
+        createdAt: now.subtract(const Duration(hours: 8)),
+      ),
+      CommunityContributionModel(
+        id: 'cc4',
+        preOrderId: 'po2',
+        farmerId: 'u1',
+        farmerName: 'Grace Wanjiku',
+        committedQuantity: 4,
+        pricePerUnit: 1800,
+        pickupLocation: GeoLocation(
+          county: 'Kiambu',
+          subCounty: 'Ruiru',
+          area: 'Kamakis',
+        ),
+        status: ContributionStatus.committed,
+        createdAt: now.subtract(const Duration(hours: 12)),
+      ),
+    ];
+  }
 
   void create(PreOrderModel preOrder) {
     state = state.copyWith(preOrders: [preOrder, ...state.preOrders]);

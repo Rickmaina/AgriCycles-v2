@@ -4,6 +4,7 @@ import '../../core/constants/enums.dart';
 import '../models/buy_request_model.dart';
 import '../models/buy_request_offer_model.dart';
 import '../models/listing_model.dart';
+import '../models/geo_location.dart';
 import 'marketplace_service.dart';
 import '../../domain/landed_cost_calculator.dart';
 
@@ -31,7 +32,70 @@ class BuyRequestState {
 
 class BuyRequestService extends StateNotifier<BuyRequestState> {
   BuyRequestService(this._ref)
-      : super(const BuyRequestState(requests: [], offers: []));
+      : super(BuyRequestState(requests: _seed(), offers: []));
+
+  static List<BuyRequestModel> _seed() {
+    final now = DateTime.now();
+    return [
+      BuyRequestModel(
+        id: 'br1',
+        buyerId: 'u3',
+        buyerName: 'Kenya Sugarcane Co.',
+        resourceType: 'Maize stalks',
+        category: 'Crop residue',
+        quantity: 15,
+        unit: 'tonnes',
+        offeredPricePerUnit: 4200,
+        description: 'Dry stalks only. Delivered to Ahero mill.',
+        deliveryLocation: GeoLocation(
+          county: 'Kisumu',
+          subCounty: 'Nyando',
+          area: 'Ahero',
+        ),
+        status: BuyRequestStatus.open,
+        createdAt: now.subtract(const Duration(hours: 6)),
+        expiresAt: now.add(const Duration(days: 14)),
+      ),
+      BuyRequestModel(
+        id: 'br2',
+        buyerId: 'u10',
+        buyerName: 'Rift Valley Dairy',
+        resourceType: 'Napier grass',
+        category: 'Crop residue',
+        quantity: 5,
+        unit: 'tonnes',
+        offeredPricePerUnit: 3800,
+        description: 'Fresh cut preferred. Weekly pickup.',
+        deliveryLocation: GeoLocation(
+          county: 'Nakuru',
+          subCounty: 'Naivasha',
+          area: 'Industrial Area',
+        ),
+        status: BuyRequestStatus.open,
+        createdAt: now.subtract(const Duration(hours: 20)),
+        expiresAt: now.add(const Duration(days: 7)),
+      ),
+      BuyRequestModel(
+        id: 'br3',
+        buyerId: 'u11',
+        buyerName: 'Kiambu Poultry Feeds',
+        resourceType: 'Cow manure',
+        category: 'Animal waste',
+        quantity: 3,
+        unit: 'tonnes',
+        offeredPricePerUnit: 1700,
+        description: 'Well-rotted only. Delivery in Ruiru.',
+        deliveryLocation: GeoLocation(
+          county: 'Kiambu',
+          subCounty: 'Ruiru',
+          area: 'Kamakis',
+        ),
+        status: BuyRequestStatus.open,
+        createdAt: now.subtract(const Duration(days: 1, hours: 4)),
+        expiresAt: now.add(const Duration(days: 10)),
+      ),
+    ];
+  }
 
   final Ref _ref;
 
