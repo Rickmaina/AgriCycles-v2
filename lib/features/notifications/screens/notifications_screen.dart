@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/notification_model.dart';
-import '../../../core/notifications/notification_deep_link.dart';
+import '../../../core/notifications/notification_router.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/notification_service.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -49,7 +49,7 @@ class NotificationsScreen extends ConsumerWidget {
                   notification: n,
                   onTap: () {
                     ref.read(notificationControllerProvider).markRead(n.id);
-                    final navigated = NotificationDeepLink.navigate(context, n);
+                    final navigated = NotificationRouter.navigate(context, n);
                     if (!navigated) {
                       // Already on notifications screen – nothing more to do.
                     }

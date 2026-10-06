@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/models/notification_model.dart';
-import '../../data/services/marketplace_service.dart';
 import '../../features/community/screens/community_order_detail_screen.dart';
 import '../../features/disputes/screens/dispute_detail_screen.dart';
-import '../../features/marketplace/screens/farmer_listing_detail_screen.dart';
 import '../../features/orders/order_detail_screen.dart';
 import '../constants/app_routes.dart';
 
 /// Central deep-link resolver for AgriCycles notifications.
-class NotificationDeepLink {
-  NotificationDeepLink._();
+///
+/// Given a [NotificationModel] (or a raw target string from FCM), routes
+/// the user to the relevant screen. Notifications with no valid target
+/// are ignored — returns `false` so the caller can fall through.
+class NotificationRouter {
+  NotificationRouter._();
 
   static bool navigate(BuildContext context, NotificationModel notification) {
     final target = notification.target;
@@ -33,7 +34,9 @@ class NotificationDeepLink {
         _push(context, CommunityOrderDetailScreen(preOrderId: id));
         return true;
       case NotificationTarget.listing:
-        _openListing(context, id);
+        // Listing detail is now a dialog, not a screen. Route to the
+        // market home; the user finds the listing there.
+        context.push(AppRoutes.market);
         return true;
       case NotificationTarget.offer:
         context.push(AppRoutes.incomingOffers);
@@ -88,18 +91,6 @@ class NotificationDeepLink {
       default:
         return null;
     }
-  }
-
-  static void _openListing(BuildContext context, String id) {
-    final container = ProviderScope.containerOf(context, listen: false);
-    final listing =
-        container.read(marketplaceProvider.notifier).listingById(id);
-    if (listing != null) {
-      _push(context, FarmerListingDetailScreen(listing: listing));
-      return;
-    }
-
-    context.push(AppRoutes.browse);
   }
 
   static void _push(BuildContext context, Widget screen) {
