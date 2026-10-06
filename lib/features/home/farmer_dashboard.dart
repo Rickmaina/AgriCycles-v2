@@ -6,9 +6,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/constants/enums.dart';
 import '../../data/models/listing_model.dart';
 import '../../data/models/order_model.dart';
-import '../../data/models/user_model.dart';
 import '../../data/services/auth_service.dart';
-import '../../data/services/notification_service.dart';
 import '../../data/services/order_service.dart';
 import '../marketplace/controllers/marketplace_controller.dart';
 
@@ -16,7 +14,6 @@ class FarmerDashboard extends ConsumerWidget {
   const FarmerDashboard({super.key});
 
   static const _green = Color(0xFF2E7D32);
-  static const _bg = Color(0xFFF5F7F5);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,8 +28,6 @@ class FarmerDashboard extends ConsumerWidget {
         : ref.watch(ordersProvider).where((order) {
             return order.buyerId == user.id || order.sellerId == user.id;
           }).toList();
-    final unreadCount =
-        user == null ? 0 : ref.watch(myUnreadCountProvider(user.id));
 
     final recentOrders = myOrders.take(2).map((order) {
       final statusColor = order.state == OrderState.accepted
@@ -116,17 +111,6 @@ class FarmerDashboard extends ConsumerWidget {
     );
   }
 
-  static String _locationLabel(UserModel? user) {
-    final parts = [user?.county, user?.subCounty, user?.area]
-        .whereType<String>()
-        .map((value) => value.trim())
-        .where((value) => value.isNotEmpty)
-        .toList();
-
-    if (parts.isEmpty) return 'Location not set';
-    if (parts.length == 1) return parts.first;
-    return '${parts[0]}, ${parts[1]}';
-  }
 
   static String _activityStatus(OrderState state) {
     switch (state) {
