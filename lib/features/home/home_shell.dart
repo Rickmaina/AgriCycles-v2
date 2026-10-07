@@ -16,6 +16,7 @@ import '../disputes/screens/admin_disputes_screen.dart';
 import '../marketplace/screens/browse_screen.dart';
 import '../notifications/screens/notifications_screen.dart';
 import '../orders/orders_list_screen.dart';
+import '../admin/rules_screen.dart';
 import '../profile/profile_screen.dart';
 import 'farmer_dashboard.dart';
 import 'widgets/admin_home.dart';
@@ -185,7 +186,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           case 4:
             return const AdminDisputesScreen();
           case 5:
-            return const ProfileScreen();
+            return const RulesScreen();
         }
       case UserRole.farmer:
       case UserRole.vet:
@@ -213,7 +214,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           _NavItem(
               Icons.local_shipping_outlined, Icons.local_shipping, 'Logistics'),
           _NavItem(Icons.gavel_outlined, Icons.gavel, 'Disputes'),
-          _NavItem(Icons.person_outline, Icons.person, 'Profile'),
+          _NavItem(Icons.settings_outlined, Icons.settings, 'Rules'),
         ];
       case UserRole.vet:
         return const [];

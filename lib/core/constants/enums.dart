@@ -32,7 +32,7 @@ extension FarmerTypeLabel on FarmerType {
 
 enum VerificationStatus { unverified, pending, approved, rejected, suspended }
 
-enum VerificationType { vet, company, vehicle }
+enum VerificationType { vet, company, vehicle, driver }
 
 extension VerificationTypeLabel on VerificationType {
   String get label {
@@ -43,6 +43,23 @@ extension VerificationTypeLabel on VerificationType {
         return 'Company';
       case VerificationType.vehicle:
         return 'Vehicle';
+      case VerificationType.driver:
+        return 'Driver';
+    }
+  }
+}
+
+enum PaymentStatus { pending, verified, rejected }
+
+extension PaymentStatusLabel on PaymentStatus {
+  String get label {
+    switch (this) {
+      case PaymentStatus.pending:
+        return 'Pending';
+      case PaymentStatus.verified:
+        return 'Verified';
+      case PaymentStatus.rejected:
+        return 'Rejected';
     }
   }
 }

@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/enums.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/role_theme.dart';
 import '../../core/utils/extensions.dart';
 import '../../data/models/order_model.dart';
 import '../../domain/transport_estimator.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../orders/controllers/orders_controller.dart';
+import 'widgets/admin_queue_card.dart';
 
 class LogisticsQueueScreen extends ConsumerWidget {
   const LogisticsQueueScreen({super.key});
@@ -24,11 +26,21 @@ class LogisticsQueueScreen extends ConsumerWidget {
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: queue.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, i) => _LogisticsCard(order: queue[i]),
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: _NtsaNote(),
+        ),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            itemCount: queue.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (_, i) => _LogisticsCard(order: queue[i]),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -39,77 +51,50 @@ class _LogisticsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    const theme = RoleTheme.admin;
     final waiting =
         order.logisticsState == LogisticsState.awaitingAdminAssignment;
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  order.resourceType,
-                  style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-              ),
-              _LogiChip(state: order.logisticsState),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _line('Seller', order.sellerName),
-          const SizedBox(height: 4),
-          _line('Buyer', order.buyerName),
-          const SizedBox(height: 4),
-          _line('Pickup', order.pickupBroadLocation),
-          const SizedBox(height: 4),
-          _line('Delivery', order.deliveryBroadLocation),
-          const SizedBox(height: 4),
-          _line('Load', '${order.quantity} ${order.unit}'),
-          if (TransportEstimator.distanceKm(
-                pickupCounty: order.pickupCounty,
-                deliveryCounty: order.deliveryCounty,
-              ) >
-              0) ...[
-            const SizedBox(height: 4),
-            _line(
-              'Distance',
-              _distanceLine(),
+    final lines = <AdminQueueLine>[
+      AdminQueueLine('Seller', order.sellerName),
+      AdminQueueLine('Buyer', order.buyerName),
+      AdminQueueLine('Pickup', order.pickupBroadLocation),
+      AdminQueueLine('Delivery', order.deliveryBroadLocation),
+      AdminQueueLine('Load', '${order.quantity} ${order.unit}'),
+      if (TransportEstimator.distanceKm(
+            pickupCounty: order.pickupCounty,
+            deliveryCounty: order.deliveryCounty,
+          ) >
+          0)
+        AdminQueueLine('Distance', _distanceLine()),
+    ];
+
+    return AdminQueueCard(
+      theme: theme,
+      icon: Icons.local_shipping_outlined,
+      title: order.resourceType,
+      statusChip: _LogiChip(state: order.logisticsState),
+      lines: lines,
+      actions: [
+        if (waiting)
+          ElevatedButton.icon(
+            onPressed: () => _onAssign(context, ref),
+            icon: const Icon(Icons.local_shipping, size: 18),
+            label: const Text('Assign pickup'),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
             ),
-          ],
-          const SizedBox(height: 10),
-          const _NtsaNote(),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: waiting
-                ? ElevatedButton.icon(
-                    onPressed: () => _onAssign(context, ref),
-                    icon: const Icon(Icons.local_shipping, size: 18),
-                    label: const Text('Assign pickup'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(44),
-                    ),
-                  )
-                : OutlinedButton.icon(
-                    onPressed: () => _onDelivered(context, ref),
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('Mark delivered'),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(44),
-                    ),
-                  ),
+          )
+        else
+          OutlinedButton.icon(
+            onPressed: () => _onDelivered(context, ref),
+            icon: const Icon(Icons.check, size: 18),
+            label: const Text('Mark delivered'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+            ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -134,26 +119,6 @@ class _LogisticsCard extends ConsumerWidget {
   void _onDelivered(BuildContext context, WidgetRef ref) {
     ref.read(ordersControllerProvider).advance(order.id);
     context.showSnack('Marked delivered');
-  }
-
-  Widget _line(String label, String value) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 72,
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
-    );
   }
 }
 

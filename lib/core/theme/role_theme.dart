@@ -78,21 +78,22 @@ class RoleTheme {
     appBarStyle: AppBarStyle.utilitarian,
   );
 
-  /// Admin — neutral slate, clinical, operationally urgent. Reads like
-  /// a control tower: everything is a queue with depth and priority.
+  /// Admin — dark command centre. Cool near-black neutrals, amber
+  /// accent for urgency, emerald/red for status. High contrast, low
+  /// fatigue. Reads like a control tower at night.
   static const RoleTheme admin = RoleTheme(
-    primary: Color(0xFF37474F),
-    primaryMuted: Color(0xFFECEFF1),
-    accent: Color(0xFFEF6C00),
-    background: Color(0xFFF2F4F5),
-    surface: Color(0xFFFFFFFF),
-    border: Color(0xFFD6DBDE),
-    textPrimary: Color(0xFF1A1F22),
-    textSecondary: Color(0xFF4A555A),
-    textMuted: Color(0xFF7C868B),
-    cardRadius: 8,
-    cardPadding: 12,
-    sectionSpacing: 12,
+    primary: Color(0xFFF59E0B),
+    primaryMuted: Color(0xFF2A2318),
+    accent: Color(0xFF10B981),
+    background: Color(0xFF0F1113),
+    surface: Color(0xFF181B1E),
+    border: Color(0xFF262A2E),
+    textPrimary: Color(0xFFF5F6F7),
+    textSecondary: Color(0xFFB0B6BC),
+    textMuted: Color(0xFF6B7278),
+    cardRadius: 12,
+    cardPadding: 14,
+    sectionSpacing: 14,
     denseLists: true,
     appBarStyle: AppBarStyle.console,
   );

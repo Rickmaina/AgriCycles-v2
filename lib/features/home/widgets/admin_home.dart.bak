@@ -10,13 +10,6 @@ import '../../../shared/widgets/section_header.dart';
 import '../../disputes/controllers/dispute_controller.dart';
 import '../../orders/controllers/orders_controller.dart';
 import '../../admin/controllers/admin_controller.dart';
-import '../../admin/payment_queue_screen.dart';
-import '../../admin/widgets/order_volume_bars.dart';
-import '../../admin/widgets/activity_feed.dart';
-import '../../marketplace/controllers/marketplace_controller.dart';
-import '../../../data/services/order_service.dart';
-import '../../../data/services/pre_order_service.dart';
-import '../../../data/services/payment_verification_service.dart';
 import '../controllers/shell_tab_controller.dart';
 
 class AdminHome extends ConsumerWidget {
@@ -37,7 +30,6 @@ class AdminHome extends ConsumerWidget {
         .length;
     final openDisputeCount =
         disputes.where((d) => d.status == DisputeStatus.open).length;
-    final pendingPayments = ref.watch(pendingPaymentsProvider);
 
     return Container(
       color: theme.background,
@@ -69,12 +61,11 @@ class AdminHome extends ConsumerWidget {
                 tone: openDisputeCount > 0 ? KpiTone.danger : KpiTone.normal,
               ),
               KpiItem(
-                icon: Icons.payments_outlined,
-                label: 'Payments to verify',
-                value: '${pendingPayments.length}',
-                tone: pendingPayments.isNotEmpty
-                    ? KpiTone.attention
-                    : KpiTone.normal,
+                icon: Icons.pending_actions_outlined,
+                label: 'Total queue',
+                value:
+                    '${pendingVerifications.length + awaitingAssignment + openDisputeCount}',
+                tone: KpiTone.emphasis,
               ),
             ],
           ),
@@ -124,24 +115,6 @@ class AdminHome extends ConsumerWidget {
                       onTap: () => ref.read(shellTabProvider.notifier).goTo(3),
                     ),
                   ),
-                if (pendingPayments.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: PriorityRow(
-                      theme: theme,
-                      icon: Icons.payments_outlined,
-                      title: 'Payments awaiting verification',
-                      subtitle:
-                          '${pendingPayments.length} submission${pendingPayments.length == 1 ? "" : "s"} need review',
-                      trailingValue: '${pendingPayments.length}',
-                      tone: PriorityTone.attention,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const PaymentQueueScreen(),
-                        ),
-                      ),
-                    ),
-                  ),
                 if (pendingVerifications.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
@@ -164,42 +137,6 @@ class AdminHome extends ConsumerWidget {
             title: 'Snapshot',
           ),
           const _SnapshotCard(theme: theme),
-          const SizedBox(height: 16),
-          const SectionHeader(
-            theme: theme,
-            icon: Icons.bar_chart,
-            title: 'Order volume',
-          ),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: theme.surface,
-              borderRadius: BorderRadius.circular(theme.cardRadius),
-              border: Border.all(color: theme.border),
-            ),
-            child: OrderVolumeBars(
-              points: ref.watch(orderVolume7dProvider),
-              theme: theme,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const SectionHeader(
-            theme: theme,
-            icon: Icons.bolt,
-            title: 'Live activity',
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: theme.surface,
-              borderRadius: BorderRadius.circular(theme.cardRadius),
-              border: Border.all(color: theme.border),
-            ),
-            child: ActivityFeed(
-              events: ref.watch(activityFeedProvider),
-              theme: theme,
-            ),
-          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -212,21 +149,18 @@ class AdminHome extends ConsumerWidget {
   }
 
   String _verificationBreakdown(List<dynamic> list) {
-    final drivers =
-        list.where((r) => r.type == VerificationType.driver).length;
-    final vehicles =
-        list.where((r) => r.type == VerificationType.vehicle).length;
+    final vets = list.where((r) => r.type == VerificationType.vet).length;
     final companies =
         list.where((r) => r.type == VerificationType.company).length;
+    final vehicles =
+        list.where((r) => r.type == VerificationType.vehicle).length;
     final parts = <String>[];
-    if (drivers > 0) {
-      parts.add('$drivers driver${drivers == 1 ? "" : "s"}');
+    if (vets > 0) parts.add('$vets vet${vets == 1 ? "" : "s"}');
+    if (companies > 0) {
+      parts.add('$companies compan${companies == 1 ? "y" : "ies"}');
     }
     if (vehicles > 0) {
       parts.add('$vehicles vehicle${vehicles == 1 ? "" : "s"}');
-    }
-    if (companies > 0) {
-      parts.add('$companies compan${companies == 1 ? "y" : "ies"}');
     }
     return parts.isEmpty ? 'Nothing pending' : parts.join(' • ');
   }
@@ -286,29 +220,12 @@ class _AllClear extends StatelessWidget {
   }
 }
 
-class _SnapshotCard extends ConsumerWidget {
+class _SnapshotCard extends StatelessWidget {
   final RoleTheme theme;
   const _SnapshotCard({required this.theme});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final listings = ref.watch(allListingsProvider).length;
-    final preOrders = ref.watch(preOrderProvider).preOrders;
-    final activeCommunity = preOrders
-        .where((p) =>
-            p.status == PreOrderStatus.open || p.status == PreOrderStatus.locked)
-        .length;
-
-    final now = DateTime.now();
-    final weekAgo = now.subtract(const Duration(days: 7));
-    final ordersThisWeek = ref
-        .watch(ordersProvider)
-        .where((o) => o.createdAt.isAfter(weekAgo))
-        .length;
-
-    final pendingVerifications =
-        ref.watch(pendingVerificationsProvider(null)).length;
-
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -318,13 +235,29 @@ class _SnapshotCard extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          _row('Total listings', '$listings', theme),
+          _row(
+            'Total listings',
+            '6',
+            theme,
+          ),
           Divider(height: 20, color: theme.border),
-          _row('Orders this week', '$ordersThisWeek', theme),
+          _row(
+            'Orders this week',
+            '4',
+            theme,
+          ),
           Divider(height: 20, color: theme.border),
-          _row('Community orders active', '$activeCommunity', theme),
+          _row(
+            'Community orders active',
+            '2',
+            theme,
+          ),
           Divider(height: 20, color: theme.border),
-          _row('Pending verifications', '$pendingVerifications', theme),
+          _row(
+            'Pending verifications',
+            '3',
+            theme,
+          ),
         ],
       ),
     );

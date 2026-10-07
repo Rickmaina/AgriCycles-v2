@@ -61,7 +61,7 @@ class _RegisterVehicleScreenState
       userId: user?.id ?? 'guest',
       applicantName: applicant,
       type: VerificationType.vehicle,
-      documentRef: plate,
+      documentRefs: [plate],
       plateNumber: plate,
       extraInfo:
           '${_makeModel.text.trim()}, ${_capacity.text.trim()}t capacity',

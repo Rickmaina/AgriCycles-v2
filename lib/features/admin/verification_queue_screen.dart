@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/enums.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/role_theme.dart';
 import '../../core/utils/extensions.dart';
 import '../../data/models/verification_request_model.dart';
 import '../../data/services/auth_service.dart';
@@ -10,6 +10,14 @@ import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/segmented_toggle.dart';
 import '../../shared/widgets/verification_badge.dart';
 import 'controllers/admin_controller.dart';
+import 'document_viewer_screen.dart';
+import 'widgets/admin_queue_card.dart';
+
+/// Top-level queue groups shown in the primary filter row.
+enum _Group { all, transport, business }
+
+/// Sub-filter applied when a group has more than one type.
+enum _Sub { all, drivers, vehicles, companies }
 
 class VerificationQueueScreen extends ConsumerStatefulWidget {
   const VerificationQueueScreen({super.key});
@@ -21,38 +29,84 @@ class VerificationQueueScreen extends ConsumerStatefulWidget {
 
 class _VerificationQueueScreenState
     extends ConsumerState<VerificationQueueScreen> {
-  VerificationType? _filter;
+  _Group _group = _Group.all;
+  _Sub _sub = _Sub.all;
 
-  static const _filters = ['All', 'Vets', 'Companies', 'Vehicles'];
+  static const _groupLabels = ['All', 'Transport', 'Business'];
+  static const _transportLabels = ['All', 'Drivers', 'Vehicles'];
+  static const _businessLabels = ['Companies'];
 
-  VerificationType? _typeForIndex(int i) => switch (i) {
-        0 => null,
-        1 => VerificationType.vet,
-        2 => VerificationType.company,
-        _ => VerificationType.vehicle,
-      };
+  List<VerificationType>? get _typesFor {
+    switch (_group) {
+      case _Group.all:
+        return null;
+      case _Group.transport:
+        switch (_sub) {
+          case _Sub.drivers:
+            return [VerificationType.driver];
+          case _Sub.vehicles:
+            return [VerificationType.vehicle];
+          case _Sub.all:
+          case _Sub.companies:
+            return [VerificationType.driver, VerificationType.vehicle];
+        }
+      case _Group.business:
+        return [VerificationType.company];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final list = ref.watch(pendingVerificationsProvider(_filter));
+    final all = ref.watch(pendingVerificationsProvider(null));
+    final types = _typesFor;
+    final list = types == null
+        ? all
+        : all.where((r) => types.contains(r.type)).toList();
 
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: SegmentedToggle(
-            options: _filters,
-            selectedIndex: _filter == null
-                ? 0
-                : _filters.indexOf(_filter == VerificationType.vet
-                    ? 'Vets'
-                    : _filter == VerificationType.company
-                        ? 'Companies'
-                        : 'Vehicles'),
-            onChanged: (i) => setState(() => _filter = _typeForIndex(i)),
+            options: _groupLabels,
+            selectedIndex: _group.index,
+            onChanged: (i) => setState(() {
+              _group = _Group.values[i];
+              _sub = _Sub.all;
+            }),
             expand: false,
           ),
         ),
+        if (_group == _Group.transport)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: SegmentedToggle(
+              options: _transportLabels,
+              selectedIndex: _sub == _Sub.drivers
+                  ? 1
+                  : _sub == _Sub.vehicles
+                      ? 2
+                      : 0,
+              onChanged: (i) => setState(() {
+                _sub = i == 1
+                    ? _Sub.drivers
+                    : i == 2
+                        ? _Sub.vehicles
+                        : _Sub.all;
+              }),
+              expand: false,
+            ),
+          ),
+        if (_group == _Group.business)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: SegmentedToggle(
+              options: _businessLabels,
+              selectedIndex: 0,
+              onChanged: (_) {},
+              expand: false,
+            ),
+          ),
         Expanded(
           child: list.isEmpty
               ? const EmptyState(
@@ -80,7 +134,42 @@ class _RequestCard extends ConsumerWidget {
         VerificationType.vet => Icons.medical_services_outlined,
         VerificationType.company => Icons.business,
         VerificationType.vehicle => Icons.local_shipping_outlined,
+        VerificationType.driver => Icons.badge_outlined,
       };
+
+  List<AdminQueueLine> get _lines {
+    switch (request.type) {
+      case VerificationType.driver:
+        return [
+          if (request.driverLicence != null)
+            AdminQueueLine('Licence', request.driverLicence!),
+          if (request.driverVehiclePlate != null)
+            AdminQueueLine('Vehicle', request.driverVehiclePlate!),
+          if (request.driverVehicleClass != null)
+            AdminQueueLine('Class', request.driverVehicleClass!),
+          AdminQueueLine('County', request.county),
+          AdminQueueLine('Submitted', request.submittedAt.relative),
+        ];
+      case VerificationType.vehicle:
+        return [
+          AdminQueueLine('Plate', request.plateNumber ?? '—'),
+          if (request.extraInfo != null)
+            AdminQueueLine('Vehicle', request.extraInfo!),
+          AdminQueueLine('County', request.county),
+          AdminQueueLine('Submitted', request.submittedAt.relative),
+        ];
+      case VerificationType.company:
+        return [
+          AdminQueueLine('County', request.county),
+          AdminQueueLine('Submitted', request.submittedAt.relative),
+        ];
+      case VerificationType.vet:
+        return [
+          AdminQueueLine('County', request.county),
+          AdminQueueLine('Submitted', request.submittedAt.relative),
+        ];
+    }
+  }
 
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
     final reason = await showDialog<String>(
@@ -107,94 +196,50 @@ class _RequestCard extends ConsumerWidget {
     context.showSnack('Approved ${request.applicantName}');
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(_icon, color: AppColors.primary, size: 22),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  request.applicantName,
-                  style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-              ),
-              VerificationBadge(status: request.status),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _line('Type', request.type.label),
-          const SizedBox(height: 4),
-          if (request.type == VerificationType.vehicle) ...[
-            _line('Plate', request.plateNumber ?? '—'),
-            if (request.extraInfo != null) ...[
-              const SizedBox(height: 4),
-              _line('Vehicle', request.extraInfo!),
-            ],
-          ] else
-            _line('Document', request.documentRef),
-          const SizedBox(height: 4),
-          _line('County', request.county),
-          const SizedBox(height: 4),
-          _line('Submitted', request.submittedAt.relative),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _reject(context, ref),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.danger,
-                    side: const BorderSide(color: AppColors.danger),
-                    minimumSize: const Size.fromHeight(44),
-                  ),
-                  child: const Text('Reject'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _approve(context, ref),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(44),
-                  ),
-                  child: const Text('Approve'),
-                ),
-              ),
-            ],
-          ),
-        ],
+  void _openDocs(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DocumentViewerScreen(
+          title: request.applicantName,
+          refs: request.documentRefs,
+        ),
       ),
     );
   }
 
-  Widget _line(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 84,
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    const theme = RoleTheme.admin;
+
+    return AdminQueueCard(
+      theme: theme,
+      icon: _icon,
+      title: request.applicantName,
+      statusChip: VerificationBadge(status: request.status),
+      lines: _lines,
+      actions: [
+        OutlinedButton(
+          onPressed: () => _openDocs(context),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(44),
           ),
+          child: const Text('Docs'),
         ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        OutlinedButton(
+          onPressed: () => _reject(context, ref),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: theme.danger,
+            side: BorderSide(color: theme.danger),
+            minimumSize: const Size.fromHeight(44),
           ),
+          child: const Text('Reject'),
+        ),
+        ElevatedButton(
+          onPressed: () => _approve(context, ref),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size.fromHeight(44),
+          ),
+          child: const Text('Approve'),
         ),
       ],
     );

@@ -1,15 +1,25 @@
 import '../../core/constants/enums.dart';
 
-/// One item in the shared verification queue (Section 8).
-/// Covers vets, companies, and vehicles via the `type` field.
+/// One item in the shared verification queue.
+/// Covers vets, companies, vehicles, and drivers via the `type` field.
 class VerificationRequestModel {
   final String id;
   final String userId;
   final String applicantName;
   final VerificationType type;
-  final String documentRef;
+
+  /// Document references (licence numbers, certificate IDs, plate scans).
+  /// Display-only for now; file URLs land later.
+  final List<String> documentRefs;
+
   final String? plateNumber; // vehicles only
   final String? extraInfo; // vehicles: make/model/capacity
+
+  // ── Driver-only fields ───────────────────────────────────────
+  final String? driverLicence;
+  final String? driverVehiclePlate;
+  final String? driverVehicleClass;
+
   final String county;
   final VerificationStatus status;
   final DateTime submittedAt;
@@ -22,9 +32,12 @@ class VerificationRequestModel {
     required this.userId,
     required this.applicantName,
     required this.type,
-    required this.documentRef,
+    this.documentRefs = const [],
     this.plateNumber,
     this.extraInfo,
+    this.driverLicence,
+    this.driverVehiclePlate,
+    this.driverVehicleClass,
     required this.county,
     this.status = VerificationStatus.pending,
     required this.submittedAt,
@@ -44,9 +57,12 @@ class VerificationRequestModel {
       userId: userId,
       applicantName: applicantName,
       type: type,
-      documentRef: documentRef,
+      documentRefs: documentRefs,
       plateNumber: plateNumber,
       extraInfo: extraInfo,
+      driverLicence: driverLicence,
+      driverVehiclePlate: driverVehiclePlate,
+      driverVehicleClass: driverVehicleClass,
       county: county,
       status: status ?? this.status,
       submittedAt: submittedAt,
